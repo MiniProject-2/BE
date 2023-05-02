@@ -1,0 +1,28 @@
+server:
+  servlet:
+    encoding:
+      charset: utf-8
+      force: true
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${RDS_HOSTNAME}:${RDS_PORT}/${RDS_DATABASE}?characterEncoding=UTF-8
+    username: ${RDS_USERNAME}
+    password: ${RDS_PASSWORD}
+  jpa:
+    database: mysql
+    open-in-view: false
+    hibernate:
+      ddl-auto: create
+    properties:
+      default_batch_fetch_size: 100
+logging:
+  level:
+    '[com.task.needmoretask]': INFO # DEBUG 레벨부터 에러 확인할 수 있게 설정하기
+
+file:
+  path: ./upload/ # UPLOAD 폴더 상대경로 / AWS에 S3 사용하는게 좋음
+
+jwt:
+  secret: ${JWT_SECRET}
