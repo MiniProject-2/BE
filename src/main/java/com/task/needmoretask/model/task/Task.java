@@ -20,11 +20,13 @@ public class Task{
     @Column(nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
     private User user;
+
     @Column(nullable = false, length = 20)
     private String title;
     @Lob
     @Column(nullable = false)
     private String description;
+
     @Column(nullable = false)
     private LocalDate startAt;
     @Column(nullable = false)
