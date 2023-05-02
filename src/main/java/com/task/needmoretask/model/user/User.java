@@ -67,23 +67,23 @@ public class User {
         this.status = status;
     }
 
-    void update(User user) {
+    public void update(User user) {
         // TODO
     }
 
-    void updateRole(Role role) {
+    public void updateRole(Role role) {
         this.role = role;
     }
 
-    void updateProfile(Profile profile) {
+    public void updateProfile(Profile profile) {
         // TODO
     }
 
-    void deactivateAccount(boolean status) {
+    public void deactivateAccount(boolean status) {
         this.status = false;
     }
 
-    void checkEmailDuplicate(String email) {
+    public void checkEmailDuplicate(String email) {
         // TODO
     }
 }
