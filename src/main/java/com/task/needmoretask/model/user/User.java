@@ -1,9 +1,9 @@
 package com.task.needmoretask.model.user;
 
+import com.task.needmoretask.model.profile.Profile;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.context.annotation.Profile;
 
 import javax.persistence.*;
 
@@ -15,14 +15,24 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(nullable = false)
     private String email;
+    @Column(nullable = false)
     private String password;
+    @Column(nullable = false)
     private String phone;
+    @Column(nullable = false)
     private String fullname;
+    @Column(nullable = false)
     private Department department;
+    @Column(nullable = false)
     private Integer joinCompanyYear;
+    @Column(nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
     private Profile profile;
+    @Column(nullable = false)
     private Role role;
+    @Column(nullable = false)
     private boolean status;
 
     public enum Department {
