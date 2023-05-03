@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.time.LocalDate;
+import java.util.Objects;
 
 @Getter @Builder
 @NoArgsConstructor
@@ -54,5 +55,18 @@ public class Task extends Timestamped {
 
     public void deactivateTask(){
         this.status = false;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Task task = (Task) o;
+        return status == task.status && user.equals(task.user) && title.equals(task.title) && description.equals(task.description) && startAt.equals(task.startAt) && endAt.equals(task.endAt) && progress == task.progress && priority == task.priority;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(user, title, description, startAt, endAt, progress, priority, status);
     }
 }

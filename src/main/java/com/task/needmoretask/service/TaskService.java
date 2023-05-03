@@ -7,14 +7,12 @@ import com.task.needmoretask.dto.task.TaskRequest;
 import com.task.needmoretask.dto.task.TaskResponse;
 import com.task.needmoretask.model.assign.AssignRepository;
 import com.task.needmoretask.model.assign.Assignment;
-
 import com.task.needmoretask.model.task.Task;
 import com.task.needmoretask.model.task.TaskJPQLRepository;
 import com.task.needmoretask.model.task.TaskRepository;
 import com.task.needmoretask.model.user.User;
 import com.task.needmoretask.model.user.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,7 +44,6 @@ public class TaskService {
                 })
                 .collect(Collectors.toList());
         try{
-//            taskRepository.save(request.toEntity(user));
             assignRepository.saveAll(assigns);
         }catch (Exception e){
             throw new Exception500("Task 생성 실패: "+e.getMessage());

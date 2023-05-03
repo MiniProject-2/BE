@@ -5,23 +5,15 @@ import com.task.needmoretask.dto.ResponseDTO;
 import com.task.needmoretask.dto.task.TaskRequest;
 import com.task.needmoretask.dto.task.TaskResponse;
 import com.task.needmoretask.model.assign.AssignRepository;
-import com.task.needmoretask.model.assign.Assignment;
+import com.task.needmoretask.model.task.TaskJPQLRepository;
 import com.task.needmoretask.service.TaskService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.Errors;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import com.task.needmoretask.model.task.Task;
-import com.task.needmoretask.model.task.TaskJPQLRepository;
-import org.springframework.web.bind.annotation.GetMapping;
-
-import java.util.ArrayList;
 import java.util.List;
 
 @RequestMapping("/api")

@@ -11,9 +11,7 @@ import com.task.needmoretask.model.profile.ProfileRepository;
 import com.task.needmoretask.model.task.Task;
 import com.task.needmoretask.model.user.User;
 import com.task.needmoretask.model.user.UserRepository;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -31,13 +29,14 @@ class TaskControllerTest {
     TestRestTemplate testRestTemplate;
     @Autowired
     UserRepository userRepository;
-    private HttpHeaders headers(User user){
+
+    private HttpHeaders headers(User user) {
         String jwt = MyJwtProvider.create(user);
 
         HttpHeaders requestHeaders = new HttpHeaders();
         requestHeaders.setContentType(MediaType.APPLICATION_JSON);
         requestHeaders.setAccept(List.of(MediaType.APPLICATION_JSON));
-        requestHeaders.add(MyJwtProvider.HEADER,jwt);
+        requestHeaders.add(MyJwtProvider.HEADER, jwt);
 
         return requestHeaders;
     }
@@ -58,8 +57,8 @@ class TaskControllerTest {
     @BeforeEach
     void setUp(
             @Autowired ProfileRepository profileRepository
-            ){
-        Profile profile = profileRepository.save(new Profile(null,"img.jpg"));
+    ) {
+        Profile profile = profileRepository.save(new Profile(null, "img.jpg"));
         User user = User.builder()
                 .id(1L)
                 .email("email@email.com")
@@ -73,29 +72,35 @@ class TaskControllerTest {
                 .build();
         userRepository.save(user);
     }
-    @Test
-    void createTask() throws JsonProcessingException {
-        //given
-        long userId = 1;
-        User user = userRepository.findById(userId).orElse(null);
-        HttpHeaders headers = headers(user);
-        LocalDate start = LocalDate.of(2023, 5, 3);
-        LocalDate end = LocalDate.of(2023, 6, 3);
-        TaskRequest taskRequest = getTaskrequest(start,end,userId,"title","description", Task.Priority.LOW, Task.Progress.IN_PROGRESS);
-        HttpEntity<?> requestEntity = new HttpEntity<>(taskRequest, headers);
 
-        //when
-        ResponseEntity<?> response = testRestTemplate
-                .postForEntity(
-                        "/api/task",
-                        requestEntity,
-                        ResponseDTO.class
-                );
+    @Nested
+    @DisplayName("Task 작성")
+    class Create {
+        @Test
+        @DisplayName("성공")
+        void createTask() throws JsonProcessingException {
+            //given
+            long userId = 1;
+            User user = userRepository.findById(userId).orElse(null);
+            HttpHeaders headers = headers(user);
+            LocalDate start = LocalDate.of(2023, 5, 3);
+            LocalDate end = LocalDate.of(2023, 6, 3);
+            TaskRequest taskRequest = getTaskrequest(start, end, userId, "title", "description", Task.Priority.LOW, Task.Progress.IN_PROGRESS);
+            HttpEntity<?> requestEntity = new HttpEntity<>(taskRequest, headers);
 
-        //then
-        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
-        ObjectMapper om = new ObjectMapper();
-        JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
-        System.out.println(jsonNode);
+            //when
+            ResponseEntity<?> response = testRestTemplate
+                    .postForEntity(
+                            "/api/task",
+                            requestEntity,
+                            ResponseDTO.class
+                    );
+
+            //then
+            Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+            ObjectMapper om = new ObjectMapper();
+            JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
+            Assertions.assertEquals("성공", jsonNode.get("msg").asText());
+        }
     }
 }

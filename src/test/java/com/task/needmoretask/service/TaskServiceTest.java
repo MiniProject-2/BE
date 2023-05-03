@@ -6,6 +6,7 @@ import com.task.needmoretask.model.assign.AssignRepository;
 import com.task.needmoretask.model.assign.Assignment;
 import com.task.needmoretask.model.profile.Profile;
 import com.task.needmoretask.model.task.Task;
+import com.task.needmoretask.model.task.TaskJPQLRepository;
 import com.task.needmoretask.model.task.TaskRepository;
 import com.task.needmoretask.model.user.User;
 import com.task.needmoretask.model.user.UserRepository;
@@ -28,6 +29,8 @@ class TaskServiceTest {
     @InjectMocks
     private TaskService taskService;
 
+    @Mock
+    private TaskJPQLRepository taskJPQLRepository;
     @Mock
     private TaskRepository taskRepository;
     @Mock
@@ -103,7 +106,6 @@ class TaskServiceTest {
             //when
             taskService.createTask(request, user);
             //then
-            verify(taskRepository, times(1)).save(request.toEntity(user));
             verify(assignRepository, times(1)).saveAll(assignments);
             Assertions.assertDoesNotThrow(() -> taskService.createTask(request, user));
         }
