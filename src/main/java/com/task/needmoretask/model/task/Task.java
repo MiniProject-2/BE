@@ -1,5 +1,6 @@
 package com.task.needmoretask.model.task;
 
+import com.task.needmoretask.core.util.Timestamped;
 import com.task.needmoretask.dto.task.TaskRequest;
 import com.task.needmoretask.model.user.User;
 import lombok.AllArgsConstructor;
@@ -14,7 +15,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity @Table(name = "task_tb")
-public class Task{
+public class Task extends Timestamped {
     @Id @GeneratedValue
     private Long id;
     @Column(nullable = false)
