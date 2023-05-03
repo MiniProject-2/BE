@@ -1,6 +1,8 @@
 package com.task.needmoretask.model.task;
 
+import com.task.needmoretask.dto.task.TaskRequest;
 import com.task.needmoretask.model.user.User;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -8,10 +10,11 @@ import lombok.NoArgsConstructor;
 import javax.persistence.*;
 import java.time.LocalDate;
 
-@Getter
+@Getter @Builder
 @NoArgsConstructor
+@AllArgsConstructor
 @Entity @Table(name = "task_tb")
-public class Task {
+public class Task{
     @Id @GeneratedValue
     private Long id;
     @Column(nullable = false)
@@ -40,24 +43,14 @@ public class Task {
         URGENT,HIGH,MEDIUM,LOW
     }
 
-    @Builder
-    public Task(User user, LocalDate startAt, LocalDate endAt, Progress progress, Priority priority) {
-        this.user = user;
-        this.startAt = startAt;
-        this.endAt = endAt;
-        this.progress = progress;
-        this.priority = priority;
-        this.status = true;
+    public void update(TaskRequest taskRequest){
+        this.startAt = taskRequest.getStartAt();
+        this.endAt = taskRequest.getEndAt();
+        this.progress = taskRequest.getProgress();
+        this.priority = taskRequest.getPriority();
     }
 
-    void update(LocalDate startAt, LocalDate endAt, Progress progress, Priority priority){
-        this.startAt = startAt;
-        this.endAt = endAt;
-        this.progress = progress;
-        this.priority = priority;
-    }
-
-    void deactivateTask(){
+    public void deactivateTask(){
         this.status = false;
     }
 }
