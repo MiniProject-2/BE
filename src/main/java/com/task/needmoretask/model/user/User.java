@@ -27,7 +27,6 @@ public class User {
     private Department department;
     @Column(nullable = false)
     private Integer joinCompanyYear;
-    @Column(nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
     private Profile profile;
     @Column(nullable = false)
@@ -54,7 +53,7 @@ public class User {
     }
 
     @Builder
-    public User(Long id, String email, String password, String phone, String fullname, Department department, Integer joinCompanyYear, Profile profile, Role role, boolean status) {
+    public User(Long id, String email, String password, String phone, String fullname, Department department, Integer joinCompanyYear, Profile profile, Role role) {
         this.id = id;
         this.email = email;
         this.password = password;
@@ -64,7 +63,7 @@ public class User {
         this.joinCompanyYear = joinCompanyYear;
         this.profile = profile;
         this.role = role;
-        this.status = status;
+        this.status = true;
     }
 
     public void update(User user) {
@@ -79,7 +78,7 @@ public class User {
         // TODO
     }
 
-    public void deactivateAccount(boolean status) {
+    public void deactivateAccount() {
         this.status = false;
     }
 
