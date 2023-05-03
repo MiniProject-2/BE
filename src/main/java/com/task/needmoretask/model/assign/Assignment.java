@@ -18,10 +18,10 @@ import javax.persistence.*;
 public class Assignment {
     @Id @GeneratedValue
     private Long id;
-    @Column(nullable = false)
+
     @ManyToOne(fetch = FetchType.LAZY)
     private User user;
-    @Column(nullable = false)
+
     @ManyToOne(fetch = FetchType.LAZY)
     private Task task;
 }

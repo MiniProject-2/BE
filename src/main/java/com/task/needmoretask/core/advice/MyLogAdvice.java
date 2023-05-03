@@ -28,15 +28,15 @@ public class MyLogAdvice {
         log.debug("디버그 : "+method.getName()+" 성공");
     }
 
-    @Before("myErrorLog()")
-    public void errorLogAdvice(JoinPoint jp) throws Exception {
-        Object[] args = jp.getArgs();
-
-        for (Object arg : args) {
-            if(arg instanceof Exception){
-                Exception e = (Exception) arg;
-                log.error("에러 : "+e.getMessage());
-            }
-        }
-    }
+//    @Before("myErrorLog()")
+//    public void errorLogAdvice(JoinPoint jp) throws Exception {
+//        Object[] args = jp.getArgs();
+//
+//        for (Object arg : args) {
+//            if(arg instanceof Exception){
+//                Exception e = (Exception) arg;
+//                log.error("에러 : "+e.getMessage());
+//            }
+//        }
+//    }
 }
