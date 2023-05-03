@@ -18,8 +18,12 @@ public class MyJwtProvider {
     private static final int EXP = 1000 * 60 * 60* 24; // 24시간
     public static final String TOKEN_PREFIX = "Bearer "; // 스페이스 필요함
     public static final String HEADER = "Authorization";
-    @Value("${jwt.secret}")
     private static String SECRET;
+    @Value("${jwt.secret}")
+    private void setSECRET(String secret){
+        SECRET = secret;
+    }
+
     //private static final String SECRET = System.getenv("HS512_SECRET");
 
     public static String create(User user) {
