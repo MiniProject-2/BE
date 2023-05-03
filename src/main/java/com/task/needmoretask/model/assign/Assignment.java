@@ -19,7 +19,6 @@ import java.util.Objects;
 public class Assignment {
     @Id @GeneratedValue
     private Long id;
-
     @ManyToOne(fetch = FetchType.LAZY)
     private User user;
     @ManyToOne(fetch = FetchType.LAZY,cascade = CascadeType.PERSIST)
