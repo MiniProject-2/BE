@@ -18,7 +18,6 @@ import java.time.LocalDate;
 public class Task extends Timestamped {
     @Id @GeneratedValue
     private Long id;
-    @Column(nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
     private User user;
 
