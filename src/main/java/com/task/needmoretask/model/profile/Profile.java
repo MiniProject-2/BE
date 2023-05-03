@@ -1,12 +1,15 @@
 package com.task.needmoretask.model.profile;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
-@Getter
+@Getter @Builder
 @NoArgsConstructor
+@AllArgsConstructor
 @Entity @Table(name = "profile_tb")
 public class Profile {
     @Id

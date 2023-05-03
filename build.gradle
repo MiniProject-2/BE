@@ -35,6 +35,9 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
+//	testImplementation 'org.mockito:mockito-core'
+	testImplementation 'junit:junit'
+
 }
 
 tasks.named('test') {
