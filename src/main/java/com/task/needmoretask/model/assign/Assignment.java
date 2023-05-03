@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 @Getter
 @Builder
@@ -18,10 +19,21 @@ import javax.persistence.*;
 public class Assignment {
     @Id @GeneratedValue
     private Long id;
-    @Column(nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
     private User user;
-    @Column(nullable = false)
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY,cascade = CascadeType.PERSIST)
     private Task task;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Assignment that = (Assignment) o;
+        return user.equals(that.user) && task.equals(that.task);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(user, task);
+    }
 }
