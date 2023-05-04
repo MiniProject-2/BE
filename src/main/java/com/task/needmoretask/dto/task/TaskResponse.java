@@ -29,10 +29,10 @@ public class TaskResponse {
         private LocalDate startAt;
         private LocalDate endAt;
         private String title;
-        private List<AssignmentDTO> assignee;
+        private List<AssignmentDTO> assignees;
 
-        Task.Priority priority;
-        Task.Progress progress;
+        private Task.Priority priority;
+        private Task.Progress progress;
 
         @Builder
         public LatestTaskOutDTO(Task task, List<Assignment> assignments) {
@@ -47,14 +47,15 @@ public class TaskResponse {
             this.endAt = task.getEndAt();
             this.title = task.getTitle();
 
-            this.assignee = assignments.stream().map(a -> new AssignmentDTO(a.getUser())).collect(Collectors.toList());
+            this.assignees = assignments.stream().map(a -> new AssignmentDTO(a.getUser())).collect(Collectors.toList());
             this.priority = task.getPriority();
             this.progress = task.getProgress();
         }
 
+        @Getter
         public class AssignmentDTO{
-            Long userId;
-            String profile;
+            private Long userId;
+            private String profile;
 
             public AssignmentDTO(User user) {
                 this.userId = user.getId();
