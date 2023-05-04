@@ -120,7 +120,7 @@ class TaskControllerTest {
         LocalDate startAt = LocalDate.of(2023, 5, 3);
         LocalDate endAt = LocalDate.of(2023, 6, 3);
 
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 8; i++) {
             Task task1 = Task.builder()
                     .user(userPS)
                     .title("title"+i)
