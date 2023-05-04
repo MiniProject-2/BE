@@ -21,7 +21,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TaskController {
     private final TaskService taskService;
-
     private TaskJPQLRepository taskJPQLRepository;
     private AssignRepository assignRepository;
 
@@ -30,6 +29,13 @@ public class TaskController {
     public ResponseEntity<?> createTask(@RequestBody @Valid TaskRequest taskRequest, Errors errors, @AuthenticationPrincipal MyUserDetails myUserDetails) {
         taskService.createTask(taskRequest, myUserDetails.getUser());
         return ResponseEntity.ok(new ResponseDTO<>());
+    }
+
+    // Task 수정
+    @PostMapping("/task/{id}/update")
+    public ResponseEntity<?> updateTask(@PathVariable Long id, @RequestBody @Valid TaskRequest taskRequest, Errors errors, @AuthenticationPrincipal MyUserDetails myUserDetails){
+        TaskResponse.Test task = taskService.updateTask(id, taskRequest, myUserDetails.getUser());
+        return ResponseEntity.ok().body(new ResponseDTO<>(task));
     }
 
     // [DashBoard] 가장 최근 생성된 task 7개 return

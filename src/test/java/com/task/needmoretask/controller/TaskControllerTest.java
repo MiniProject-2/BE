@@ -4,8 +4,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.task.needmoretask.core.auth.jwt.MyJwtProvider;
+import com.task.needmoretask.core.exception.Exception404;
 import com.task.needmoretask.dto.ResponseDTO;
 import com.task.needmoretask.dto.task.TaskRequest;
+import com.task.needmoretask.model.assign.AssignRepository;
+import com.task.needmoretask.model.assign.Assignment;
 import com.task.needmoretask.model.profile.Profile;
 import com.task.needmoretask.model.profile.ProfileRepository;
 import com.task.needmoretask.model.task.Task;
@@ -21,6 +24,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("dev")
@@ -30,6 +34,8 @@ class TaskControllerTest {
     TestRestTemplate testRestTemplate;
     @Autowired
     UserRepository userRepository;
+    @Autowired
+    AssignRepository assignRepository;
 
     private HttpHeaders headers(User user) {
         String jwt = MyJwtProvider.create(user);
@@ -55,22 +61,54 @@ class TaskControllerTest {
                 .build();
     }
 
+    long userId1,userId2,taskId;
+
     @BeforeEach
     void setUp(
             @Autowired ProfileRepository profileRepository
     ) {
         Profile profile = profileRepository.save(new Profile(null, "img.jpg"));
-        User user = User.builder()
-                .email("email@email.com")
+        User user1 = User.builder()
+                .email("user1@email.com")
                 .password("1234")
                 .phone("010-0000-0000")
-                .fullname("test")
+                .fullname("user1")
                 .department(User.Department.HR)
                 .joinCompanyYear(2023)
                 .profile(profile)
                 .role(User.Role.USER)
                 .build();
-        userRepository.save(user);
+        User user2 = User.builder()
+                .email("user2@email.com")
+                .password("1234")
+                .phone("010-0000-0000")
+                .fullname("user2")
+                .department(User.Department.DEVELOPMENT)
+                .joinCompanyYear(2024)
+                .profile(profile)
+                .role(User.Role.USER)
+                .build();
+        List<User> users = List.of(user1,user2);
+        userRepository.saveAll(users);
+        userId1 = user1.getId();
+        userId2 = user2.getId();
+
+        LocalDate start = LocalDate.of(2023, 3, 3);
+        LocalDate end = LocalDate.of(2023, 4, 3);
+        TaskRequest taskRequest = getTaskrequest(start,end,user1.getId(),"수정 전 제목","수정 전 내용", Task.Priority.LOW, Task.Progress.IN_PROGRESS);
+        Task task = taskRequest.toEntity(user1);
+        List<Assignment> assginees = taskRequest.getAssignee().stream()
+                .map(assigneeRequest -> {
+                    User assignee = userRepository.findById(assigneeRequest.getUserId())
+                            .orElseThrow(() -> new Exception404("유저를 찾을 수 없습니다"));
+                    return Assignment.builder()
+                            .user(assignee)
+                            .task(task)
+                            .build();
+                })
+                .collect(Collectors.toList());
+        assignRepository.saveAll(assginees);
+        taskId = task.getId();
     }
 
     @Nested
@@ -81,12 +119,11 @@ class TaskControllerTest {
         @DisplayName("성공")
         void createTask() throws JsonProcessingException {
             //given
-            long userId = 1;
-            User user = userRepository.findById(userId).orElse(null);
+            User user = userRepository.findById(userId1).orElse(null);
             HttpHeaders headers = headers(user);
             LocalDate start = LocalDate.of(2023, 5, 3);
             LocalDate end = LocalDate.of(2023, 6, 3);
-            TaskRequest taskRequest = getTaskrequest(start, end, userId, "title", "description", Task.Priority.LOW, Task.Progress.IN_PROGRESS);
+            TaskRequest taskRequest = getTaskrequest(start, end, userId1, "title", "description", Task.Priority.LOW, Task.Progress.IN_PROGRESS);
             HttpEntity<?> requestEntity = new HttpEntity<>(taskRequest, headers);
 
             //when
@@ -102,6 +139,47 @@ class TaskControllerTest {
             ObjectMapper om = new ObjectMapper();
             JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
             Assertions.assertEquals("성공", jsonNode.get("msg").asText());
+        }
+    }
+
+    @Nested
+    @DirtiesContext
+    @DisplayName("Task 수정")
+    class Update {
+
+        @Test
+        @DisplayName("성공")
+        void updateTask() throws JsonProcessingException {
+            //given
+            User user = userRepository.findById(userId1).orElse(null);
+            HttpHeaders headers = headers(user);
+            LocalDate start = LocalDate.of(2023, 5, 3);
+            LocalDate end = LocalDate.of(2023, 6, 3);
+            String title = "수정 후 제목";
+            String desc = "수정 후 내용";
+            Task.Priority priority = Task.Priority.HIGH;
+            Task.Progress progress = Task.Progress.DONE;
+            TaskRequest taskRequest = getTaskrequest(start, end, userId2, title, desc, priority, progress);
+            HttpEntity<?> requestEntity = new HttpEntity<>(taskRequest, headers);
+
+            //when
+            ResponseEntity<?> response = testRestTemplate
+                    .postForEntity(
+                            "/api/task/"+taskId+"/update",
+                            requestEntity,
+                            ResponseDTO.class
+                    );
+
+            //then
+            Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+            ObjectMapper om = new ObjectMapper();
+            JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
+            JsonNode data = jsonNode.get("data");
+            Assertions.assertEquals(taskId, data.get("id").asLong());
+            Assertions.assertEquals(userId1, data.get("taskOwner").asLong());
+            Assertions.assertEquals(title, data.get("title").asText());
+            Assertions.assertEquals(desc, data.get("description").asText());
+            System.out.println(data);
         }
     }
 }

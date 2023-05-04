@@ -1,6 +1,7 @@
 package com.task.needmoretask.service;
 
 
+import com.task.needmoretask.core.exception.Exception401;
 import com.task.needmoretask.core.exception.Exception404;
 import com.task.needmoretask.core.exception.Exception500;
 import com.task.needmoretask.dto.task.TaskRequest;
@@ -32,7 +33,7 @@ public class TaskService {
 
     // Task 생성
     @Transactional
-    public void createTask(TaskRequest request, User user){
+    public void createTask(TaskRequest request, User user) {
         List<Assignment> assigns = request.getAssignee().stream()
                 .map(assigneeRequest -> {
                     User assignee = userRepository.findById(assigneeRequest.getUserId())
@@ -43,15 +44,58 @@ public class TaskService {
                             .build();
                 })
                 .collect(Collectors.toList());
-        try{
+        try {
             assignRepository.saveAll(assigns);
-        }catch (Exception e){
-            throw new Exception500("Task 생성 실패: "+e.getMessage());
+        } catch (Exception e) {
+            throw new Exception500("Task 생성 실패: " + e.getMessage());
         }
     }
 
+    @Transactional
+    public TaskResponse.Test updateTask(Long id, TaskRequest request, User user) {
+        List<Assignment> newAssigns = new ArrayList<>();
+        Task task = notFoundTask(id);
+        unAuthorizedTask(task,user);
+        task.update(request);
+        /*
+        * Assignee가 있는지 없는지 있다가 없앴는지 없다가 만들었는지 알 수 없기 때문에
+        * 일단 해당 Task에 Assignement가 존재했다면 싹 다 지우고
+        * request로 assignee를 새로 추가했다면 다시 저장
+        * */
+
+        // 해당 Task에 Assignment가 있다면 싹 다 지움
+        try{
+            assignRepository.findAssigneeByTaskId(id).ifPresent(assignRepository::deleteAll);
+        }catch (Exception e){
+            throw new Exception500("Assignment 삭제 실패: " + e.getMessage());
+        }
+
+        // request로 Assignee를 등록했다면 새로 저장
+        if (!request.getAssignee().isEmpty()) {
+            newAssigns = request.getAssignee().stream()
+                    .map(assigneeRequest -> {
+                        User assignee = userRepository.findById(assigneeRequest.getUserId())
+                                .orElseThrow(() -> new Exception404("유저를 찾을 수 없습니다"));
+                        return Assignment.builder()
+                                .user(assignee)
+                                .task(request.toEntity(user))
+                                .build();
+                    })
+                    .collect(Collectors.toList());
+            try{
+                assignRepository.saveAll(newAssigns);
+            }catch (Exception e){
+                throw new Exception500("Task 수정 실패: " + e.getMessage());
+            }
+        }
+        List<TaskResponse.Test.AssignResponse> assignResponses = newAssigns.stream()
+                .map(TaskResponse.Test.AssignResponse::new)
+                .collect(Collectors.toList());
+        return new TaskResponse.Test(task,assignResponses);
+    }
+
     // [Dashboard] 가장 최근 생성된 task 7개 return
-    public List<TaskResponse.LatestTaskOutDTO> getLatestTasks(){
+    public List<TaskResponse.LatestTaskOutDTO> getLatestTasks() {
         List<Task> tasksPS = taskJPQLRepository.findLatestTasks();
 
         List<Assignment> assigneesPS;
@@ -66,5 +110,15 @@ public class TaskService {
         }
 
         return responseList;
+    }
+
+    Task notFoundTask(Long taskId){
+        return taskRepository.findById(taskId).orElseThrow(
+                () -> new Exception404("Task를 찾을 수 없습니다"));
+    }
+
+    // Task에 대한 유저 권한 체크(본인 Task가 아닌 경우(어드민이 아닌 유저) 수정, 삭제 불가)
+    void unAuthorizedTask(Task task, User loginUser){
+        if(loginUser.getRole() == User.Role.USER && !task.getUser().getId().equals(loginUser.getId())) throw new Exception401("권한이 없습니다");
     }
 }
