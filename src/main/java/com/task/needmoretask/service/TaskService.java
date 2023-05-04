@@ -102,26 +102,13 @@ public class TaskService {
 
         List<Assignment> assigneesPS;
         for (int i = 0; i < tasksPS.size(); i++) {
-
-            if (tasksPS.get(i).getId() == null || tasksPS.get(i).getId().equals("")) {
-                throw new Exception404("taskId가 없습니다");
-            }
-            assigneesPS = assignRepository.findAssigneeByTaskId(tasksPS.get(i).getId());
-
-            if (assigneesPS == null || assigneesPS.size() == 0) {
-                throw new Exception404("assignee를 찾을 수 없습니다");
-            }
+            assigneesPS = assignRepository.findAssigneeByTaskId(tasksPS.get(i).getId()).orElse(new ArrayList<>());
 
             TaskResponse.LatestTaskOutDTO latestTaskOutDTO = new TaskResponse.LatestTaskOutDTO(
                     tasksPS.get(i), assigneesPS
             );
             responseList.add(latestTaskOutDTO);
         }
-
-        if (responseList.size() == 0 || responseList == null) {
-            throw new Exception404("list가 비어있습니다");
-        }
-
         return responseList;
     }
 
