@@ -2,7 +2,6 @@ package com.task.needmoretask.model.assign;
 
 import com.task.needmoretask.model.task.Task;
 import com.task.needmoretask.model.user.User;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,9 +10,7 @@ import javax.persistence.*;
 import java.util.Objects;
 
 @Getter
-@Builder
 @NoArgsConstructor
-@AllArgsConstructor
 @Entity
 @Table(name = "assign_tb")
 public class Assignment {
@@ -23,6 +20,19 @@ public class Assignment {
     private User user;
     @ManyToOne(fetch = FetchType.LAZY,cascade = CascadeType.PERSIST)
     private Task task;
+    @Column(nullable = false)
+    private boolean status;
+
+    @Builder
+    public Assignment(User user, Task task) {
+        this.user = user;
+        this.task = task;
+        this.status = true;
+    }
+
+    public void deactivateAssign(){
+        this.status = false;
+    }
 
     @Override
     public boolean equals(Object o) {
