@@ -3,7 +3,6 @@ package com.task.needmoretask.model.task;
 import com.task.needmoretask.core.util.Timestamped;
 import com.task.needmoretask.dto.task.TaskRequest;
 import com.task.needmoretask.model.user.User;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,9 +11,8 @@ import javax.persistence.*;
 import java.time.LocalDate;
 import java.util.Objects;
 
-@Getter @Builder
+@Getter
 @NoArgsConstructor
-@AllArgsConstructor
 @Entity @Table(name = "task_tb")
 public class Task extends Timestamped {
     @Id @GeneratedValue
@@ -44,6 +42,19 @@ public class Task extends Timestamped {
     }
     public enum Priority{
         URGENT,HIGH,MEDIUM,LOW
+    }
+
+    @Builder
+    public Task(Long id, User user, String title, String description, LocalDate startAt, LocalDate endAt, Progress progress, Priority priority) {
+        this.id = id;
+        this.user = user;
+        this.title = title;
+        this.description = description;
+        this.startAt = startAt;
+        this.endAt = endAt;
+        this.progress = progress;
+        this.priority = priority;
+        this.status = true;
     }
 
     public void update(TaskRequest taskRequest){

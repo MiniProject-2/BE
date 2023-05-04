@@ -3,6 +3,7 @@ package com.task.needmoretask.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.task.needmoretask.core.auth.jwt.MyJwtProvider;
 import com.task.needmoretask.core.exception.Exception404;
 import com.task.needmoretask.dto.ResponseDTO;
@@ -69,7 +70,7 @@ class TaskControllerTest {
     @BeforeEach
     void setUp(
             @Autowired ProfileRepository profileRepository
-    ) {
+    ) throws JsonProcessingException {
         Profile profile = profileRepository.save(new Profile(null, "img.jpg"));
         User user1 = User.builder()
                 .email("user1@email.com")
@@ -114,6 +115,11 @@ class TaskControllerTest {
         taskId = task.getId();
         userRepository.save(user1);
 
+        ObjectMapper om = new ObjectMapper();
+        om.registerModule(new JavaTimeModule());
+        JsonNode jsonNode = om.readTree(om.writeValueAsString(task));
+        System.out.println(jsonNode);
+
         // given
         long userId = 1;
         User userPS = userRepository.findById(userId).orElse(null);
@@ -129,7 +135,6 @@ class TaskControllerTest {
                     .endAt(endAt)
                     .progress(Task.Progress.IN_PROGRESS)
                     .priority(Task.Priority.LOW)
-                    .status(true)
                     .build();
 
             Assignment assignment = Assignment.builder()
@@ -210,6 +215,36 @@ class TaskControllerTest {
             Assertions.assertEquals(userId1, data.get("taskOwner").asLong());
             Assertions.assertEquals(title, data.get("title").asText());
             Assertions.assertEquals(desc, data.get("description").asText());
+            System.out.println(data);
+        }
+    }
+
+    @Nested
+    @DisplayName("Task 삭제")
+    class Delete {
+
+        @Test
+        @DirtiesContext
+        @DisplayName("성공")
+        void deleteTask() throws JsonProcessingException {
+            //given
+            User user = userRepository.findById(userId1).orElse(null);
+            HttpHeaders headers = headers(user);
+            HttpEntity<?> requestEntity = new HttpEntity<>(headers);
+
+            //when
+            ResponseEntity<?> response = testRestTemplate
+                    .postForEntity(
+                            "/api/task/" + taskId + "/delete",
+                            requestEntity,
+                            ResponseDTO.class
+                    );
+
+            //then
+            Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+            ObjectMapper om = new ObjectMapper();
+            JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
+            JsonNode data = jsonNode.get("data");
             System.out.println(data);
         }
     }
