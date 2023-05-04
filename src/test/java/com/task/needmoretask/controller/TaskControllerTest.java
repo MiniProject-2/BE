@@ -112,21 +112,21 @@ class TaskControllerTest {
                 .collect(Collectors.toList());
         assignRepository.saveAll(assginees);
         taskId = task.getId();
-        userRepository.save(user);
+        userRepository.save(user1);
 
         // given
         long userId = 1;
         User userPS = userRepository.findById(userId).orElse(null);
-        LocalDate start = LocalDate.of(2023, 5, 3);
-        LocalDate end = LocalDate.of(2023, 6, 3);
+        LocalDate startAt = LocalDate.of(2023, 5, 3);
+        LocalDate endAt = LocalDate.of(2023, 6, 3);
 
         for (int i = 0; i < 5; i++) {
-            Task task = Task.builder()
+            Task task1 = Task.builder()
                     .user(userPS)
                     .title("title"+i)
                     .description("desc"+i)
-                    .startAt(start)
-                    .endAt(end)
+                    .startAt(startAt)
+                    .endAt(endAt)
                     .progress(Task.Progress.IN_PROGRESS)
                     .priority(Task.Priority.LOW)
                     .status(true)
@@ -134,7 +134,7 @@ class TaskControllerTest {
 
             Assignment assignment = Assignment.builder()
                     .user(userPS)
-                    .task(task)
+                    .task(task1)
                     .build();
 
             assignRepository.save(assignment);
@@ -143,10 +143,10 @@ class TaskControllerTest {
     }
 
     @Nested
-    @DirtiesContext
     @DisplayName("Task 작성")
     class Create {
         @Test
+        @DirtiesContext
         @DisplayName("성공")
         void createTask() throws JsonProcessingException {
             //given
@@ -174,11 +174,11 @@ class TaskControllerTest {
     }
 
     @Nested
-    @DirtiesContext
     @DisplayName("Task 수정")
     class Update {
 
         @Test
+        @DirtiesContext
         @DisplayName("성공")
         void updateTask() throws JsonProcessingException {
             //given
@@ -196,7 +196,7 @@ class TaskControllerTest {
             //when
             ResponseEntity<?> response = testRestTemplate
                     .postForEntity(
-                            "/api/task/"+taskId+"/update",
+                            "/api/task/" + taskId + "/update",
                             requestEntity,
                             ResponseDTO.class
                     );
@@ -212,9 +212,11 @@ class TaskControllerTest {
             Assertions.assertEquals(desc, data.get("description").asText());
             System.out.println(data);
         }
-        
+    }
+
     @Test
-    void getLatestTasks(){
+    @DirtiesContext
+    void getLatestTasks() {
 
         // when
         ResponseEntity<ResponseDTO> response = testRestTemplate
