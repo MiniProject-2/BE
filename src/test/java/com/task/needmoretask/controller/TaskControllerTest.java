@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDate;
@@ -60,7 +61,6 @@ class TaskControllerTest {
     ) {
         Profile profile = profileRepository.save(new Profile(null, "img.jpg"));
         User user = User.builder()
-                .id(1L)
                 .email("email@email.com")
                 .password("1234")
                 .phone("010-0000-0000")
@@ -74,6 +74,7 @@ class TaskControllerTest {
     }
 
     @Nested
+    @DirtiesContext
     @DisplayName("Task 작성")
     class Create {
         @Test
