@@ -8,11 +8,44 @@ import lombok.Getter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class TaskResponse {
+
+    @Getter
+    public static class Test{
+        private Long id;
+        private Long taskOwner;
+        private String title;
+        private String description;
+        private LocalDate startAt;
+        private LocalDate endAt;
+        private Task.Progress progress;
+        private Task.Priority priority;
+        private List<AssignResponse> assignee;
+
+        public Test(Task task, List<AssignResponse> assignee) {
+            this.id = task.getId();
+            this.taskOwner = task.getUser().getId();
+            this.title = task.getTitle();
+            this.description = task.getDescription();
+            this.startAt = task.getStartAt();
+            this.endAt = task.getEndAt();
+            this.progress = task.getProgress();
+            this.priority = task.getPriority();
+            this.assignee = assignee;
+        }
+
+        @Getter
+        public static class AssignResponse{
+            private Long assignee;
+
+            public AssignResponse(Assignment assignment) {
+                this.assignee = assignment.getUser().getId();
+            }
+        }
+    }
 
     // dashboard 가장 최신 7개 전달 DTO
     @Getter

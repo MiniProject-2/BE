@@ -47,6 +47,8 @@ public class Task extends Timestamped {
     }
 
     public void update(TaskRequest taskRequest){
+        this.title = taskRequest.getTitle();
+        this.description = taskRequest.getDesc();
         this.startAt = taskRequest.getStartAt();
         this.endAt = taskRequest.getEndAt();
         this.progress = taskRequest.getProgress();
