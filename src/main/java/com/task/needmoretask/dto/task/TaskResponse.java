@@ -96,4 +96,17 @@ public class TaskResponse {
             }
         }
     }
+
+    @Getter
+    public static class PerformanceOutDTO{
+        private LocalDate date;
+        private int assignedTaskCount;
+        private int doneCount;
+
+        public PerformanceOutDTO(LocalDate date, int assignedTaskCount, int doneCount) {
+            this.date = date;
+            this.assignedTaskCount = assignedTaskCount;
+            this.doneCount = doneCount;
+        }
+    }
 }
