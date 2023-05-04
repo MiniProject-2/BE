@@ -14,6 +14,7 @@ import com.task.needmoretask.model.task.TaskRepository;
 import com.task.needmoretask.model.user.User;
 import com.task.needmoretask.model.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -96,17 +97,29 @@ public class TaskService {
 
     // [Dashboard] 가장 최근 생성된 task 7개 return
     public List<TaskResponse.LatestTaskOutDTO> getLatestTasks() {
+        List<TaskResponse.LatestTaskOutDTO> responseList = new ArrayList<>();
         List<Task> tasksPS = taskJPQLRepository.findLatestTasks();
 
         List<Assignment> assigneesPS;
-        List<TaskResponse.LatestTaskOutDTO> responseList = new ArrayList<>();
         for (int i = 0; i < tasksPS.size(); i++) {
 
-            assigneesPS = assignRepository.findAssigneeByTaskId(tasksPS.get(i).getId()).orElseThrow();
+            if (tasksPS.get(i).getId() == null || tasksPS.get(i).getId().equals("")) {
+                throw new Exception404("taskId가 없습니다");
+            }
+            assigneesPS = assignRepository.findAssigneeByTaskId(tasksPS.get(i).getId());
+
+            if (assigneesPS == null || assigneesPS.size() == 0) {
+                throw new Exception404("assignee를 찾을 수 없습니다");
+            }
+
             TaskResponse.LatestTaskOutDTO latestTaskOutDTO = new TaskResponse.LatestTaskOutDTO(
                     tasksPS.get(i), assigneesPS
             );
             responseList.add(latestTaskOutDTO);
+        }
+
+        if (responseList.size() == 0 || responseList == null) {
+            throw new Exception404("list가 비어있습니다");
         }
 
         return responseList;

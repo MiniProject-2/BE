@@ -12,6 +12,7 @@ import com.task.needmoretask.model.assign.Assignment;
 import com.task.needmoretask.model.profile.Profile;
 import com.task.needmoretask.model.profile.ProfileRepository;
 import com.task.needmoretask.model.task.Task;
+import com.task.needmoretask.model.task.TaskRepository;
 import com.task.needmoretask.model.user.User;
 import com.task.needmoretask.model.user.UserRepository;
 import org.junit.jupiter.api.*;
@@ -35,9 +36,11 @@ class TaskControllerTest {
     @Autowired
     UserRepository userRepository;
     @Autowired
+    TaskRepository taskRepository;
+    @Autowired
     AssignRepository assignRepository;
 
-    private HttpHeaders headers(User user) {
+    private HttpHeaders headers(User user){
         String jwt = MyJwtProvider.create(user);
 
         HttpHeaders requestHeaders = new HttpHeaders();
@@ -109,6 +112,34 @@ class TaskControllerTest {
                 .collect(Collectors.toList());
         assignRepository.saveAll(assginees);
         taskId = task.getId();
+        userRepository.save(user);
+
+        // given
+        long userId = 1;
+        User userPS = userRepository.findById(userId).orElse(null);
+        LocalDate start = LocalDate.of(2023, 5, 3);
+        LocalDate end = LocalDate.of(2023, 6, 3);
+
+        for (int i = 0; i < 5; i++) {
+            Task task = Task.builder()
+                    .user(userPS)
+                    .title("title"+i)
+                    .description("desc"+i)
+                    .startAt(start)
+                    .endAt(end)
+                    .progress(Task.Progress.IN_PROGRESS)
+                    .priority(Task.Priority.LOW)
+                    .status(true)
+                    .build();
+
+            Assignment assignment = Assignment.builder()
+                    .user(userPS)
+                    .task(task)
+                    .build();
+
+            assignRepository.save(assignment);
+        }
+
     }
 
     @Nested
@@ -181,5 +212,19 @@ class TaskControllerTest {
             Assertions.assertEquals(desc, data.get("description").asText());
             System.out.println(data);
         }
+        
+    @Test
+    void getLatestTasks(){
+
+        // when
+        ResponseEntity<ResponseDTO> response = testRestTemplate
+                .getForEntity(
+                        "/api/tasks/latest",
+                        ResponseDTO.class
+                );
+
+        System.out.println(response.getBody().getData().toString());
+        // then
+        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }
