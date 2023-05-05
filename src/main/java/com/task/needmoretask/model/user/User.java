@@ -32,7 +32,7 @@ public class User {
     @Column(nullable = false)
     private Role role;
     @Column(nullable = false)
-    private boolean status;
+    private boolean isDeleted;
 
     public enum Department {
         DEVELOPMENT,
@@ -63,7 +63,7 @@ public class User {
         this.joinCompanyYear = joinCompanyYear;
         this.profile = profile;
         this.role = role;
-        this.status = true;
+        this.isDeleted = false;
     }
 
     public void update(User user) {
@@ -79,7 +79,7 @@ public class User {
     }
 
     public void deactivateAccount() {
-        this.status = false;
+        this.isDeleted = true;
     }
 
     public void checkEmailDuplicate(String email) {

@@ -51,13 +51,13 @@ public class TaskResponse {
     @AllArgsConstructor @Builder @Getter
     public static class Delete{
         private Long taskId;
-        private boolean status;
+        private boolean isDeleted;
         private List<AssignmentResponse> assignee;
 
         @AllArgsConstructor @Builder @Getter
         public static class AssignmentResponse{
             private Long assignId;
-            private boolean status;
+            private boolean isDeleted;
         }
     }
 

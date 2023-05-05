@@ -21,17 +21,17 @@ public class Assignment {
     @ManyToOne(fetch = FetchType.LAZY,cascade = CascadeType.PERSIST)
     private Task task;
     @Column(nullable = false)
-    private boolean status;
+    private boolean isDeleted;
 
     @Builder
     public Assignment(User user, Task task) {
         this.user = user;
         this.task = task;
-        this.status = true;
+        this.isDeleted = false;
     }
 
     public void deactivateAssign(){
-        this.status = false;
+        this.isDeleted = true;
     }
 
     @Override

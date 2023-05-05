@@ -17,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -121,10 +120,10 @@ public class TaskService {
         List<TaskResponse.Delete.AssignmentResponse> assignmentResponses = assignments.stream()
                 .map(assignment -> TaskResponse.Delete.AssignmentResponse.builder()
                         .assignId(assignment.getId())
-                        .status(assignment.isStatus())
+                        .isDeleted(assignment.isDeleted())
                         .build())
                 .collect(Collectors.toList());
-        return TaskResponse.Delete.builder().taskId(id).status(task.isStatus()).assignee(assignmentResponses).build();
+        return TaskResponse.Delete.builder().taskId(id).isDeleted(task.isDeleted()).assignee(assignmentResponses).build();
     }
 
     // [Dashboard] 가장 최근 생성된 task 7개 return
