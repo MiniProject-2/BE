@@ -45,6 +45,13 @@ public class TaskController {
         return ResponseEntity.ok().body(new ResponseDTO<>(delete));
     }
 
+    // Task 상세보기
+    @GetMapping("/task/{id}")
+    public ResponseEntity<?> getDetailTask(@PathVariable Long id, @AuthenticationPrincipal MyUserDetails myUserDetails){
+        TaskResponse.Detail detail = taskService.getDetailTask(id);
+        return ResponseEntity.ok().body(new ResponseDTO<>(detail));
+    }
+
     // [DashBoard] 가장 최근 생성된 task 7개 return
     @GetMapping("/tasks/latest")
     public ResponseEntity<?> getLatestTasks(){

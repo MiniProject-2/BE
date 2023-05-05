@@ -17,9 +17,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -128,6 +125,22 @@ public class TaskService {
                         .build())
                 .collect(Collectors.toList());
         return TaskResponse.Delete.builder().taskId(id).isDeleted(task.isDeleted()).assignee(assignmentResponses).build();
+    }
+
+    // Task 상세보기
+    public TaskResponse.Detail getDetailTask(Long id){
+        Task task = notFoundTask(id);
+        List<TaskResponse.Detail.AssignmentResponse> assignee = assignRepository.findAssigneeByTaskId(task.getId())
+                .map(assignments -> assignments.stream()
+                        .map(TaskResponse.Detail.AssignmentResponse::new)
+                        .collect(Collectors.toList()))
+                .orElse(Collections.emptyList());
+
+        return TaskResponse.Detail.builder()
+                .taskOwner(new TaskResponse.Detail.UserResponse(task))
+                .assignee(assignee)
+                .task(task)
+                .build();
     }
 
     // [Dashboard] 가장 최근 생성된 task 7개 return
