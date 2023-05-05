@@ -14,8 +14,10 @@ import com.task.needmoretask.model.task.TaskRepository;
 import com.task.needmoretask.model.user.User;
 import com.task.needmoretask.model.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.GetMapping;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -179,6 +181,58 @@ public class TaskService {
         }
 
         return performanceOutDTOList;
+    }
+
+    // [DashBoard] 최근 1주일간의 통계 데이터
+
+    public TaskResponse.ProgressOutDTO getProgress(){
+        TaskResponse.ProgressOutDTO progressOutDTO;
+
+        int doneTotalCnt = 0;
+        int inProgressTotalCnt = 0;
+        int todoTotalCnt = 0;
+
+        List<TaskResponse.ProgressOutDTO.Graph> doneGraphList = new ArrayList<>();
+        List<TaskResponse.ProgressOutDTO.Graph> progressGraphList = new ArrayList<>();
+        List<TaskResponse.ProgressOutDTO.Graph> todoGraphList = new ArrayList<>();
+
+        ZonedDateTime date = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS)
+                .plusDays(1).minusNanos(1).minusWeeks(1);
+
+        for (int i = 0; i < 7; i++) {
+            date = date.plusDays(1);
+
+            int doneDateCnt = taskJPQLRepository.findCountByProgressTime(Task.Progress.DONE, date);
+            int inProgressDateCnt = taskJPQLRepository.findCountByProgressTime(Task.Progress.IN_PROGRESS, date);
+            int todoDateCnt = taskJPQLRepository.findCountByProgressTime(Task.Progress.TODO, date);
+
+            doneTotalCnt += doneDateCnt;
+            inProgressTotalCnt += inProgressDateCnt;
+            todoTotalCnt += todoDateCnt;
+
+            doneGraphList.add(TaskResponse.ProgressOutDTO.Graph.builder()
+                    .date(date.toLocalDate())
+                    .count(doneDateCnt)
+                    .build());
+
+            progressGraphList.add(TaskResponse.ProgressOutDTO.Graph.builder()
+                    .date(date.toLocalDate())
+                    .count(inProgressDateCnt)
+                    .build());
+
+            todoGraphList.add(TaskResponse.ProgressOutDTO.Graph.builder()
+                    .date(date.toLocalDate())
+                    .count(todoDateCnt)
+                    .build());
+        }
+
+        progressOutDTO = new TaskResponse.ProgressOutDTO(
+                doneTotalCnt, doneGraphList,
+                inProgressTotalCnt, progressGraphList,
+                todoTotalCnt, doneGraphList
+        );
+
+        return progressOutDTO;
     }
 
     private Task notFoundTask(Long taskId) {
