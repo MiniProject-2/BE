@@ -35,7 +35,7 @@ public class Task extends Timestamped {
     @Column(nullable = false)
     private Priority priority;
     @Column(nullable = false)
-    private boolean status;
+    private boolean isDeleted;
 
     public enum Progress{
         TODO,IN_PROGRESS,DONE
@@ -54,7 +54,7 @@ public class Task extends Timestamped {
         this.endAt = endAt;
         this.progress = progress;
         this.priority = priority;
-        this.status = true;
+        this.isDeleted = false;
     }
 
     public void update(TaskRequest taskRequest){
@@ -67,7 +67,7 @@ public class Task extends Timestamped {
     }
 
     public void deactivateTask(){
-        this.status = false;
+        this.isDeleted = true;
     }
 
     @Override
@@ -75,11 +75,11 @@ public class Task extends Timestamped {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Task task = (Task) o;
-        return status == task.status && user.equals(task.user) && title.equals(task.title) && description.equals(task.description) && startAt.equals(task.startAt) && endAt.equals(task.endAt) && progress == task.progress && priority == task.priority;
+        return isDeleted == task.isDeleted && user.equals(task.user) && title.equals(task.title) && description.equals(task.description) && startAt.equals(task.startAt) && endAt.equals(task.endAt) && progress == task.progress && priority == task.priority;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(user, title, description, startAt, endAt, progress, priority, status);
+        return Objects.hash(user, title, description, startAt, endAt, progress, priority, isDeleted);
     }
 }

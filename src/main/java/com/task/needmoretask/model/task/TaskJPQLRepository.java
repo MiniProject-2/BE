@@ -1,13 +1,10 @@
 package com.task.needmoretask.model.task;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -23,7 +20,7 @@ public class TaskJPQLRepository {
                 em.createQuery("select t " +
                                 "from Task t " +
                                 "join fetch t.user " +
-                                "where t.status = true " +
+                                "where t.isDeleted = false " +
                                 "order by t.createdAt desc"
                 ,Task.class);
 
