@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -33,7 +34,7 @@ public class TaskJPQLRepository {
         return taskListPS;
     }
     // date 이전에 존재했던 Task 가져오기
-    public List<Task> findTasksByDate(LocalDateTime date){
+    public List<Task> findTasksByDate(ZonedDateTime date){
         TypedQuery<Task> query =
                 em.createQuery("select t " +
                         "from Task t " +
@@ -55,7 +56,7 @@ public class TaskJPQLRepository {
     }
 
     // date 이전에 존재했던 DONE 인 Task 갯수 가져오기
-    public int findDoneCountByDate(LocalDateTime date){
+    public int findDoneCountByDate(ZonedDateTime date){
         Long tastCnt =
                 em.createQuery("select COUNT(t) " +
                                 "from Task t " +
