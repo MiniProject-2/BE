@@ -17,6 +17,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -140,6 +142,37 @@ public class TaskService {
             responseList.add(latestTaskOutDTO);
         }
         return responseList;
+    }
+    
+    // [Dashboard] Perfomance(최근 2주동안의) data return
+    public List<TaskResponse.PerformanceOutDTO> getPerfomance(){
+        List<TaskResponse.PerformanceOutDTO> performanceOutDTOList = new ArrayList<>();
+
+        LocalDateTime date = LocalDateTime.now().minusWeeks(2);
+
+        for (int i = 0; i < 14; i++) {
+            List<Task> tasksPS = taskJPQLRepository.findTasksByDate(date);
+
+            int assignNullSize = 0;
+            for (int j = 0; j < tasksPS.size(); j++) {
+                int assignSize = assignRepository.findAssignCountByTaskId(tasksPS.get(i).getId())
+                        .orElse(0);
+
+                if(assignSize == 0)
+                    assignNullSize++;
+            }
+
+            int taskCnt = tasksPS.size() - assignNullSize;
+            System.out.println(taskCnt);
+            int doneCnt = taskJPQLRepository.findDoneCountByDate(date);
+            System.out.println(doneCnt);
+
+            performanceOutDTOList.add(new TaskResponse.PerformanceOutDTO(date.toLocalDate(), taskCnt, doneCnt));
+
+            date = date.plusDays(1);
+        }
+
+        return performanceOutDTOList;
     }
 
     private Task notFoundTask(Long taskId) {

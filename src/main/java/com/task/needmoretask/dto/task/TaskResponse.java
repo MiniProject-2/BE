@@ -114,12 +114,12 @@ public class TaskResponse {
     @Getter
     public static class PerformanceOutDTO{
         private LocalDate date;
-        private int assignedTaskCount;
+        private int taskCount;
         private int doneCount;
 
         public PerformanceOutDTO(LocalDate date, int assignedTaskCount, int doneCount) {
             this.date = date;
-            this.assignedTaskCount = assignedTaskCount;
+            this.taskCount = assignedTaskCount;
             this.doneCount = doneCount;
         }
     }
