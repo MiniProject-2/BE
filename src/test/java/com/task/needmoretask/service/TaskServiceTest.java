@@ -6,6 +6,7 @@ import com.task.needmoretask.model.assign.AssignRepository;
 import com.task.needmoretask.model.assign.Assignment;
 import com.task.needmoretask.model.profile.Profile;
 import com.task.needmoretask.model.task.Task;
+import com.task.needmoretask.model.task.TaskJPQLRepository;
 import com.task.needmoretask.model.task.TaskRepository;
 import com.task.needmoretask.model.user.User;
 import com.task.needmoretask.model.user.UserRepository;
@@ -29,6 +30,8 @@ class TaskServiceTest {
     private TaskService taskService;
 
     @Mock
+    private TaskJPQLRepository taskJPQLRepository;
+    @Mock
     private TaskRepository taskRepository;
     @Mock
     private AssignRepository assignRepository;
@@ -50,11 +53,28 @@ class TaskServiceTest {
                 .profile(new Profile())
                 .role(User.Role.USER)
                 .build();
-        when(userRepository.findById(anyLong()))
+        lenient().when(userRepository.findById(anyLong()))
                 .thenAnswer(invocation -> {
                     Long userId = invocation.getArgument(0);
                     if (!user.getId().equals(userId)) throw new Exception404("유저를 찾을 수 없습니다");
                     return Optional.of(user);
+                });
+
+        Task task = Task.builder()
+                .id(1L)
+                .startAt(LocalDate.of(2023,4,1))
+                .endAt(LocalDate.of(2023,5,1))
+                .title("title")
+                .description("description")
+                .priority(Task.Priority.LOW)
+                .progress(Task.Progress.IN_PROGRESS)
+                .user(user)
+                .build();
+        lenient().when(taskRepository.findById(anyLong()))
+                .thenAnswer(invocation -> {
+                    Long taskId = invocation.getArgument(0);
+                    if (!task.getId().equals(taskId)) throw new Exception404("Task를 찾을 수 없습니다");
+                    return Optional.of(task);
                 });
     }
 
@@ -103,9 +123,25 @@ class TaskServiceTest {
             //when
             taskService.createTask(request, user);
             //then
-            verify(taskRepository, times(1)).save(request.toEntity(user));
             verify(assignRepository, times(1)).saveAll(assignments);
             Assertions.assertDoesNotThrow(() -> taskService.createTask(request, user));
+        }
+    }
+
+    @Nested
+    @DisplayName("Task 삭제")
+    class Delete {
+        @Test
+        @DisplayName("성공")
+        void success(){
+            //given
+            long taskId = 1;
+            //when
+            taskService.deleteTask(taskId,user);
+            //then
+            verify(taskRepository,times(1)).findById(taskId);
+            verify(assignRepository,times(1)).findAssigneeByTaskId(taskId);
+            Assertions.assertDoesNotThrow(() -> taskService.deleteTask(taskId,user));
         }
     }
 }

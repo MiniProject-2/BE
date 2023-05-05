@@ -5,23 +5,15 @@ import com.task.needmoretask.dto.ResponseDTO;
 import com.task.needmoretask.dto.task.TaskRequest;
 import com.task.needmoretask.dto.task.TaskResponse;
 import com.task.needmoretask.model.assign.AssignRepository;
-import com.task.needmoretask.model.assign.Assignment;
+import com.task.needmoretask.model.task.TaskJPQLRepository;
 import com.task.needmoretask.service.TaskService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.Errors;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import com.task.needmoretask.model.task.Task;
-import com.task.needmoretask.model.task.TaskJPQLRepository;
-import org.springframework.web.bind.annotation.GetMapping;
-
-import java.util.ArrayList;
 import java.util.List;
 
 @RequestMapping("/api")
@@ -29,7 +21,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TaskController {
     private final TaskService taskService;
-
     private TaskJPQLRepository taskJPQLRepository;
     private AssignRepository assignRepository;
 
@@ -40,6 +31,20 @@ public class TaskController {
         return ResponseEntity.ok(new ResponseDTO<>());
     }
 
+    // Task 수정
+    @PostMapping("/task/{id}/update")
+    public ResponseEntity<?> updateTask(@PathVariable Long id, @RequestBody @Valid TaskRequest taskRequest, Errors errors, @AuthenticationPrincipal MyUserDetails myUserDetails){
+        TaskResponse.Test task = taskService.updateTask(id, taskRequest, myUserDetails.getUser());
+        return ResponseEntity.ok().body(new ResponseDTO<>(task));
+    }
+
+    // Task 삭제
+    @PostMapping("/task/{id}/delete")
+    public ResponseEntity<?> deleteTask(@PathVariable Long id, @AuthenticationPrincipal MyUserDetails myUserDetails){
+        TaskResponse.Delete delete = taskService.deleteTask(id,myUserDetails.getUser());
+        return ResponseEntity.ok().body(new ResponseDTO<>(delete));
+    }
+
     // [DashBoard] 가장 최근 생성된 task 7개 return
     @GetMapping("/tasks/latest")
     public ResponseEntity<?> getLatestTasks(){
@@ -47,5 +52,14 @@ public class TaskController {
         responseList = taskService.getLatestTasks();
 
         return ResponseEntity.ok().body(new ResponseDTO<>(responseList));
+    }
+
+    // [DashBoard] 최근 2주간의 task, done 갯수 return
+    @GetMapping("/performance")
+    public ResponseEntity<?> getPerfomance(){
+        List<TaskResponse.PerformanceOutDTO> responceList;
+        responceList = taskService.getPerfomance();
+
+        return ResponseEntity.ok().body(new ResponseDTO<>(responceList));
     }
 }

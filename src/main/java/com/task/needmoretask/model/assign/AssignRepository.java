@@ -8,6 +8,10 @@ import java.util.Optional;
 
 public interface AssignRepository extends JpaRepository<Assignment,Long> {
 
-    @Query("select a from Assignment a join fetch a.user where a.task.id = :taskId")
+    @Query("select a from Assignment a join fetch a.user join fetch a.task where a.task.id = :taskId and a.status = true")
     Optional<List<Assignment>> findAssigneeByTaskId(Long taskId);
+
+    // task의 assign된 user 수 가져오기
+    @Query("select COUNT(a) from Assignment a where a.task.id = :taskId and a.status = true")
+    Optional<Integer> findAssignCountByTaskId(Long taskId);
 }
