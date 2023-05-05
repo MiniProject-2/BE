@@ -61,6 +61,58 @@ public class TaskResponse {
         }
     }
 
+    @Getter
+    public static class Detail{
+        private UserResponse taskOwner;
+        private ZonedDateTime createdAt;
+        private ZonedDateTime updatedAt;
+        private LocalDate startAt;
+        private LocalDate endAt;
+        private String title;
+        private String desc;
+        private List<Detail.AssignmentResponse> assignee;
+        private Task.Priority priority;
+        private Task.Progress progress;
+
+        @Builder
+        public Detail(UserResponse taskOwner, List<Detail.AssignmentResponse> assignee, Task task) {
+            this.taskOwner = taskOwner;
+            this.createdAt = task.getCreatedAt();
+            this.updatedAt = task.getUpdatedAt();
+            this.startAt = task.getStartAt();
+            this.endAt = task.getEndAt();
+            this.title = task.getTitle();
+            this.desc = task.getDescription();
+            this.assignee = assignee;
+            this.priority = task.getPriority();
+            this.progress = task.getProgress();
+        }
+
+        @Getter
+        public static class UserResponse{
+            private Long userId;
+            private String fullName;
+            private String profileImageUrl;
+
+            public UserResponse(Task task) {
+                this.userId = task.getUser().getId();
+                this.fullName = task.getUser().getFullname();
+                this.profileImageUrl = task.getUser().getProfile().getUrl();
+            }
+        }
+
+        @Getter
+        public static class AssignmentResponse{
+            private Long userId;
+            private String profileImageUrl;
+
+            public AssignmentResponse(Assignment assignment) {
+                this.userId = assignment.getUser().getId();
+                this.profileImageUrl = assignment.getUser().getProfile().getUrl();
+            }
+        }
+    }
+
     // dashboard 가장 최신 7개 전달 DTO
     @Getter
     public static class LatestTaskOutDTO{

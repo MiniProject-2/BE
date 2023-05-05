@@ -3,7 +3,6 @@ package com.task.needmoretask.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.task.needmoretask.core.auth.jwt.MyJwtProvider;
 import com.task.needmoretask.core.exception.Exception404;
 import com.task.needmoretask.dto.ResponseDTO;
@@ -26,6 +25,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -54,7 +54,8 @@ class TaskControllerTest {
     }
 
     TaskRequest getTaskrequest(LocalDate start, LocalDate end, Long userId, String title, String desc, Task.Priority priority, Task.Progress progress) {
-        List<TaskRequest.AssigneeRequest> assignees = List.of(TaskRequest.AssigneeRequest.builder().userId(userId).build());
+        List<TaskRequest.AssigneeRequest> assignees = new ArrayList<>();
+        if(userId != null) assignees = List.of(TaskRequest.AssigneeRequest.builder().userId(userId).build());
         return TaskRequest.builder()
                 .startAt(start)
                 .endAt(end)
@@ -66,12 +67,12 @@ class TaskControllerTest {
                 .build();
     }
 
-    long userId1,userId2,taskId;
+    long userId1,userId2,taskId,taskId2;
 
     @BeforeEach
     void setUp(
             @Autowired ProfileRepository profileRepository
-    ) throws JsonProcessingException {
+    ) {
         Profile profile = profileRepository.save(new Profile(null, "img.jpg"));
         User user1 = User.builder()
                 .email("user1@email.com")
@@ -114,12 +115,10 @@ class TaskControllerTest {
                 .collect(Collectors.toList());
         assignRepository.saveAll(assginees);
         taskId = task.getId();
-        userRepository.save(user1);
 
-        ObjectMapper om = new ObjectMapper();
-        om.registerModule(new JavaTimeModule());
-        JsonNode jsonNode = om.readTree(om.writeValueAsString(task));
-        System.out.println(jsonNode);
+        Task task2 = getTaskrequest(start,end,null,"title","desc", Task.Priority.LOW, Task.Progress.IN_PROGRESS).toEntity(user1);
+        taskRepository.save(task2);
+        taskId2 = task2.getId();
 
         // given
         long userId = 1;
@@ -216,7 +215,6 @@ class TaskControllerTest {
             Assertions.assertEquals(userId1, data.get("taskOwner").asLong());
             Assertions.assertEquals(title, data.get("title").asText());
             Assertions.assertEquals(desc, data.get("description").asText());
-            System.out.println(data);
         }
     }
 
@@ -246,7 +244,67 @@ class TaskControllerTest {
             ObjectMapper om = new ObjectMapper();
             JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
             JsonNode data = jsonNode.get("data");
-            System.out.println(data);
+        }
+    }
+
+    @Nested
+    @DisplayName("Task 상세보기")
+    class Detail {
+
+        @Test
+        @DirtiesContext
+        @DisplayName("성공1: assignee 있음")
+        void getDetailTask1() throws JsonProcessingException {
+            //given
+            User user = userRepository.findById(userId1).orElse(null);
+            HttpHeaders headers = headers(user);
+            HttpEntity<?> requestEntity = new HttpEntity<>(headers);
+
+            //when
+            ResponseEntity<?> response = testRestTemplate
+                    .exchange(
+                            "/api/task/" + taskId,
+                            HttpMethod.GET,
+                            requestEntity,
+                            ResponseDTO.class
+                    );
+
+            //then
+            Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+            ObjectMapper om = new ObjectMapper();
+            JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
+            Assertions.assertEquals("성공", jsonNode.get("msg").asText());
+            JsonNode data = jsonNode.get("data");
+            Assertions.assertEquals(userId1,data.get("taskOwner").get("userId").asLong());
+            Assertions.assertFalse(data.get("assignee").isEmpty());
+        }
+
+        @Test
+        @DirtiesContext
+        @DisplayName("성공2: assignee 없음")
+        void getDetailTask2() throws JsonProcessingException {
+            //given
+            User user = userRepository.findById(userId1).orElse(null);
+            HttpHeaders headers = headers(user);
+            HttpEntity<?> requestEntity = new HttpEntity<>(headers);
+
+            //when
+            ResponseEntity<?> response = testRestTemplate
+                    .exchange(
+                            "/api/task/" + taskId2,
+                            HttpMethod.GET,
+                            requestEntity,
+                            ResponseDTO.class
+                    );
+
+            //then
+            Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+            ObjectMapper om = new ObjectMapper();
+            JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
+            Assertions.assertEquals("성공", jsonNode.get("msg").asText());
+            JsonNode data = jsonNode.get("data");
+            Assertions.assertEquals(userId1,data.get("taskOwner").get("userId").asLong());
+            Assertions.assertTrue(data.get("assignee").isEmpty());
         }
     }
 
