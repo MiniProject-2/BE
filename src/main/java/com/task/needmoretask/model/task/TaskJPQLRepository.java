@@ -37,8 +37,11 @@ public class TaskJPQLRepository {
     public List<Task> findTasksByDate(ZonedDateTime date){
         TypedQuery<Task> query =
                 em.createQuery("select t " +
-                        "from Task t " +
-                        "where t.createdAt <= :date"
+                                        "from Task t " +
+                                        "where (t.updatedAt >= :date " +
+                                        "and t.isDeleted = true) " +
+                                        "or (t.createdAt <= :date " +
+                                        "and t.isDeleted = false)"
                                 , Task.class)
                         .setParameter("date", date);
 
@@ -55,17 +58,38 @@ public class TaskJPQLRepository {
         return query.getResultList();
     }
 
-    // date 이전에 존재했던 DONE 인 Task 갯수 가져오기
+    // date 이전에 존재했던 DONE 인 Task수 select
     public int findDoneCountByDate(ZonedDateTime date){
         Long tastCnt =
                 em.createQuery("select COUNT(t) " +
-                                "from Task t " +
-                                "where t.createdAt <= :date " +
-                                "and t.progress = :done", Long.class)
+                                        "from Task t " +
+                                        "where ((t.updatedAt >= :date " +
+                                        "and t.isDeleted = true) " +
+                                        "or (t.createdAt <= :date " +
+                                        "and t.isDeleted = false))" +
+                                        "and t.progress = :done"
+                                , Long.class)
                         .setParameter("date", date)
                         .setParameter("done", Task.Progress.DONE)
                         .getSingleResult();
 
         return  tastCnt.intValue();
     }
+
+    // date날짜에 progressType된 Task수 select
+    public int findCountByProgressTime(Task.Progress progress, ZonedDateTime date){
+        Long taskDoneCnt =
+                em.createQuery("select COUNT(t) " +
+                                        "from Task t " +
+                                        "where t.progress = :progress " +
+                                        "and t.updatedAt = :date " +
+                                        "and t.isDeleted = false"
+                                , Long.class)
+                        .setParameter("progress", progress)
+                        .setParameter("date", date)
+                        .getSingleResult();
+
+        return taskDoneCnt.intValue();
+    }
+
 }

@@ -175,4 +175,44 @@ public class TaskResponse {
             this.doneCount = doneCount;
         }
     }
+
+    @Getter
+    public static class ProgressOutDTO{
+        private Total done;
+        private Total inProgress;
+        private Total todo;
+
+        @Builder
+        public ProgressOutDTO(int doneTotalCnt, List<Graph> doneList,
+                              int inProgressTotalCnt, List<Graph> inProgressList,
+                              int todoTotalCnt, List<Graph> todoList) {
+            this.done = new Total(doneTotalCnt, doneList);
+            this.inProgress = new Total(inProgressTotalCnt, inProgressList);
+            this.todo = new Total(todoTotalCnt, todoList);
+        }
+
+        @Getter
+        public class Total{
+            private int totalCount;
+            private List<Graph> graph;
+
+            @Builder
+            public Total(int totalCount, List<Graph> graph) {
+                this.totalCount = totalCount;
+                this.graph = graph;
+            }
+        }
+
+        @Getter
+        public class Graph{
+            private LocalDate date;
+            private int count;
+
+            @Builder
+            public Graph(LocalDate date, int count) {
+                this.date = date;
+                this.count = count;
+            }
+        }
+    }
 }

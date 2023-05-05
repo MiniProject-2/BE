@@ -69,4 +69,13 @@ public class TaskController {
 
         return ResponseEntity.ok().body(new ResponseDTO<>(responceList));
     }
+
+    // [DashBoard] 최근 1주일간의 통계 데이터
+    @GetMapping("/progress")
+    public ResponseEntity<?> getProgresses(){
+        TaskResponse.ProgressOutDTO responce;
+        responce = taskService.getProgress();
+
+        return ResponseEntity.ok().body(new ResponseDTO<>(responce));
+    }
 }
