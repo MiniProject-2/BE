@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 
@@ -82,11 +83,13 @@ public class TaskJPQLRepository {
                 em.createQuery("select COUNT(t) " +
                                         "from Task t " +
                                         "where t.progress = :progress " +
-                                        "and t.updatedAt = :date " +
+                                        "and t.updatedAt >= :startDate " +
+                                        "and t.updatedAt < :endDate " +
                                         "and t.isDeleted = false"
                                 , Long.class)
                         .setParameter("progress", progress)
-                        .setParameter("date", date)
+                        .setParameter("startDate", date.toLocalDate().atStartOfDay(ZoneId.systemDefault()))
+                        .setParameter("endDate", date.toLocalDate().plusDays(1).atStartOfDay(ZoneId.systemDefault()))
                         .getSingleResult();
 
         return taskDoneCnt.intValue();
