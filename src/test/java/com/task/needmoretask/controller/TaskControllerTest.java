@@ -116,7 +116,7 @@ class TaskControllerTest {
         assignRepository.saveAll(assginees);
         taskId = task.getId();
 
-        Task task2 = getTaskrequest(start,end,null,"title","desc", Task.Priority.LOW, Task.Progress.IN_PROGRESS).toEntity(user1);
+        Task task2 = getTaskrequest(start,end,null,"title","desc", Task.Priority.LOW, Task.Progress.TODO).toEntity(user1);
         taskRepository.save(task2);
         taskId2 = task2.getId();
 
@@ -346,5 +346,23 @@ class TaskControllerTest {
         Assertions.assertEquals(localDate, LocalDate.parse(data.get(0).get("date").asText(), DateTimeFormatter.ISO_DATE));
         Assertions.assertEquals(0, data.get(0).get("taskCount").asInt());
         Assertions.assertEquals(0, data.get(0).get("doneCount").asInt());
+    }
+
+    @Test
+    @DirtiesContext
+    void getProgress() throws JsonProcessingException {
+
+        ResponseEntity<ResponseDTO> response = testRestTemplate
+                .getForEntity(
+                        "/api/progress",
+                        ResponseDTO.class
+                );
+
+        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+        ObjectMapper om = new ObjectMapper();
+        JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
+        JsonNode data = jsonNode.get("data");
+
+        System.out.println(data.toString());
     }
 }
