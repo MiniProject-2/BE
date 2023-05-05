@@ -35,7 +35,6 @@ public class TaskJPQLRepository {
 
         return taskListPS;
     }
-
     // date 이전에 존재했던 Task 가져오기
     public List<Task> findTasksByDate(LocalDateTime date){
         TypedQuery<Task> query =

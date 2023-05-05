@@ -44,7 +44,6 @@ public class TaskRequest {
                 .description(desc)
                 .progress(progress)
                 .priority(priority)
-                .status(true)
                 .build();
     }
 }

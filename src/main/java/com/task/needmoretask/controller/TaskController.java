@@ -38,6 +38,13 @@ public class TaskController {
         return ResponseEntity.ok().body(new ResponseDTO<>(task));
     }
 
+    // Task 삭제
+    @PostMapping("/task/{id}/delete")
+    public ResponseEntity<?> deleteTask(@PathVariable Long id, @AuthenticationPrincipal MyUserDetails myUserDetails){
+        TaskResponse.Delete delete = taskService.deleteTask(id,myUserDetails.getUser());
+        return ResponseEntity.ok().body(new ResponseDTO<>(delete));
+    }
+
     // [DashBoard] 가장 최근 생성된 task 7개 return
     @GetMapping("/tasks/latest")
     public ResponseEntity<?> getLatestTasks(){

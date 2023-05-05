@@ -14,13 +14,13 @@ import com.task.needmoretask.model.task.TaskRepository;
 import com.task.needmoretask.model.user.User;
 import com.task.needmoretask.model.user.UserRepository;
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -105,6 +105,28 @@ public class TaskService {
         return new TaskResponse.Test(task, assignResponses);
     }
 
+    // Task 삭제
+    @Transactional
+    public TaskResponse.Delete deleteTask(Long id, User user) {
+        Task task = notFoundTask(id);
+        unAuthorizedTask(task,user);
+        List<Assignment> assignments;
+        try {
+            assignments = assignRepository.findAssigneeByTaskId(task.getId()).orElse(Collections.emptyList());
+            assignments.forEach(Assignment::deactivateAssign);
+            task.deactivateTask();
+        }catch (Exception e){
+            throw new Exception500("Task 삭제 실패: " + e.getMessage());
+        }
+        List<TaskResponse.Delete.AssignmentResponse> assignmentResponses = assignments.stream()
+                .map(assignment -> TaskResponse.Delete.AssignmentResponse.builder()
+                        .assignId(assignment.getId())
+                        .status(assignment.isStatus())
+                        .build())
+                .collect(Collectors.toList());
+        return TaskResponse.Delete.builder().taskId(id).status(task.isStatus()).assignee(assignmentResponses).build();
+    }
+
     // [Dashboard] 가장 최근 생성된 task 7개 return
     public List<TaskResponse.LatestTaskOutDTO> getLatestTasks() {
         List<TaskResponse.LatestTaskOutDTO> responseList = new ArrayList<>();
@@ -121,7 +143,7 @@ public class TaskService {
         }
         return responseList;
     }
-
+    
     // [Dashboard] Perfomance(최근 2주동안의) data return
     public List<TaskResponse.PerformanceOutDTO> getPerfomance(){
         List<TaskResponse.PerformanceOutDTO> performanceOutDTOList = new ArrayList<>();
@@ -153,13 +175,13 @@ public class TaskService {
         return performanceOutDTOList;
     }
 
-    Task notFoundTask(Long taskId) {
+    private Task notFoundTask(Long taskId) {
         return taskRepository.findById(taskId).orElseThrow(
                 () -> new Exception404("Task를 찾을 수 없습니다"));
     }
 
     // Task에 대한 유저 권한 체크(본인 Task가 아닌 경우(어드민이 아닌 유저) 수정, 삭제 불가)
-    void unAuthorizedTask(Task task, User loginUser) {
+    private void unAuthorizedTask(Task task, User loginUser) {
         if (loginUser.getRole() == User.Role.USER && !task.getUser().getId().equals(loginUser.getId()))
             throw new Exception401("권한이 없습니다");
     }

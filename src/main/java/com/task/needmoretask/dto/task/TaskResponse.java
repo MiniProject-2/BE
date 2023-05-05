@@ -3,6 +3,7 @@ package com.task.needmoretask.dto.task;
 import com.task.needmoretask.model.assign.Assignment;
 import com.task.needmoretask.model.task.Task;
 import com.task.needmoretask.model.user.User;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -44,6 +45,19 @@ public class TaskResponse {
             public AssignResponse(Assignment assignment) {
                 this.assignee = assignment.getUser().getId();
             }
+        }
+    }
+
+    @AllArgsConstructor @Builder @Getter
+    public static class Delete{
+        private Long taskId;
+        private boolean status;
+        private List<AssignmentResponse> assignee;
+
+        @AllArgsConstructor @Builder @Getter
+        public static class AssignmentResponse{
+            private Long assignId;
+            private boolean status;
         }
     }
 
