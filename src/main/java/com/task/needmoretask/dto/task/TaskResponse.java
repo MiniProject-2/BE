@@ -9,6 +9,7 @@ import lombok.Getter;
 
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -183,12 +184,12 @@ public class TaskResponse {
         private Total todo;
 
         @Builder
-        public ProgressOutDTO(int doneTotalCnt, List<Graph> doneList,
-                              int inProgressTotalCnt, List<Graph> inProgressList,
-                              int todoTotalCnt, List<Graph> todoList) {
-            this.done = new Total(doneTotalCnt, doneList);
-            this.inProgress = new Total(inProgressTotalCnt, inProgressList);
-            this.todo = new Total(todoTotalCnt, todoList);
+        public ProgressOutDTO(LocalDate[] date, int doneTotalCnt, int[] doneList,
+                              int inProgressTotalCnt, int[] inProgressList,
+                              int todoTotalCnt, int[] todoList) {
+            this.done = new Total(doneTotalCnt, date, doneList);
+            this.inProgress = new Total(inProgressTotalCnt, date, inProgressList);
+            this.todo = new Total(todoTotalCnt, date, todoList);
         }
 
         @Getter
@@ -196,10 +197,13 @@ public class TaskResponse {
             private int totalCount;
             private List<Graph> graph;
 
-            @Builder
-            public Total(int totalCount, List<Graph> graph) {
+            public Total(int totalCount, LocalDate[] date, int[] cntList) {
                 this.totalCount = totalCount;
-                this.graph = graph;
+
+                this.graph = new ArrayList<>();
+                for (int i = 0; i < date.length; i++) {
+                    graph.add(new Graph(date[i], cntList[i]));
+                }
             }
         }
 
@@ -208,7 +212,6 @@ public class TaskResponse {
             private LocalDate date;
             private int count;
 
-            @Builder
             public Graph(LocalDate date, int count) {
                 this.date = date;
                 this.count = count;

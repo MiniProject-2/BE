@@ -129,4 +129,14 @@ public class TaskRepositoryTest {
         assertThat(cnt).isEqualTo(8);
     }
 
+    @Test
+    public void findCountByProgressTime(){
+        int cnt = taskJPQLRepository.findCountByProgressTime(
+                Task.Progress.DONE,
+                ZonedDateTime.of(2023, 5, 6, 3, 39, 0, 0, ZoneId.systemDefault())
+        );
+
+        assertThat(cnt).isEqualTo(8);
+    }
+
 }

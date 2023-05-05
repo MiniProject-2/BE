@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -205,14 +206,17 @@ public class TaskService {
         int inProgressTotalCnt = 0;
         int todoTotalCnt = 0;
 
-        List<TaskResponse.ProgressOutDTO.Graph> doneGraphList = new ArrayList<>();
-        List<TaskResponse.ProgressOutDTO.Graph> progressGraphList = new ArrayList<>();
-        List<TaskResponse.ProgressOutDTO.Graph> todoGraphList = new ArrayList<>();
+        int days = 7;
+        LocalDate[] progressDate = new LocalDate[days];
+
+        int[] doneCntList = new int[days];
+        int[] inProgressCntList = new int[days];
+        int[] todoCntList = new int[days];
 
         ZonedDateTime date = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS)
                 .plusDays(1).minusNanos(1).minusWeeks(1);
 
-        for (int i = 0; i < 7; i++) {
+        for (int i = 0; i < days; i++) {
             date = date.plusDays(1);
 
             int doneDateCnt = taskJPQLRepository.findCountByProgressTime(Task.Progress.DONE, date);
@@ -223,26 +227,17 @@ public class TaskService {
             inProgressTotalCnt += inProgressDateCnt;
             todoTotalCnt += todoDateCnt;
 
-            doneGraphList.add(TaskResponse.ProgressOutDTO.Graph.builder()
-                    .date(date.toLocalDate())
-                    .count(doneDateCnt)
-                    .build());
+            progressDate[i] = date.toLocalDate();
+            doneCntList[i] = doneDateCnt;
+            inProgressCntList[i] = inProgressDateCnt;
+            todoCntList[i] = todoDateCnt;
 
-            progressGraphList.add(TaskResponse.ProgressOutDTO.Graph.builder()
-                    .date(date.toLocalDate())
-                    .count(inProgressDateCnt)
-                    .build());
-
-            todoGraphList.add(TaskResponse.ProgressOutDTO.Graph.builder()
-                    .date(date.toLocalDate())
-                    .count(todoDateCnt)
-                    .build());
         }
 
-        progressOutDTO = new TaskResponse.ProgressOutDTO(
-                doneTotalCnt, doneGraphList,
-                inProgressTotalCnt, progressGraphList,
-                todoTotalCnt, doneGraphList
+        progressOutDTO = new TaskResponse.ProgressOutDTO( progressDate,
+                doneTotalCnt, doneCntList,
+                inProgressTotalCnt, inProgressCntList,
+                todoTotalCnt, todoCntList
         );
 
         return progressOutDTO;
