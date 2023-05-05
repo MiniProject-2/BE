@@ -8,7 +8,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -71,8 +71,8 @@ public class TaskResponse {
         private String ownerProfile;
         private User.Department department;
 
-        private LocalDateTime createdAt;
-        private LocalDateTime updatedAt;
+        private ZonedDateTime createdAt;
+        private ZonedDateTime updatedAt;
         private LocalDate startAt;
         private LocalDate endAt;
         private String title;
