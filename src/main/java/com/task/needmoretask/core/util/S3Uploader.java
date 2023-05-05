@@ -14,6 +14,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -50,10 +52,11 @@ public class S3Uploader {
         else log.info("파일이 삭제되지 못했습니다");
     }
 
-    private Optional<File> convert(MultipartFile file) {
+    private Optional<File> convert(MultipartFile file) throws UnsupportedEncodingException {
         UUID uuid = UUID.randomUUID();
         String originalFilename = file.getOriginalFilename();
-        return Optional.of(uuid + "_" + originalFilename).map(File::new).filter(f -> {
+        String convertedFilename = new String(originalFilename != null ? originalFilename.getBytes(StandardCharsets.UTF_8) : new byte[0], StandardCharsets.ISO_8859_1);
+        return Optional.of(uuid + "_" + convertedFilename).map(File::new).filter(f -> {
             try {
                 return f.createNewFile();
             } catch (IOException e) {
