@@ -25,6 +25,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -133,7 +134,7 @@ class TaskControllerTest {
                     .description("desc"+i)
                     .startAt(startAt)
                     .endAt(endAt)
-                    .progress(Task.Progress.IN_PROGRESS)
+                    .progress(Task.Progress.DONE)
                     .priority(Task.Priority.LOW)
                     .build();
 
@@ -263,5 +264,29 @@ class TaskControllerTest {
         System.out.println(response.getBody().getData().toString());
         // then
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    @DirtiesContext
+    void getPerfomance() throws JsonProcessingException {
+
+        ResponseEntity<ResponseDTO> response = testRestTemplate
+                .getForEntity(
+                        "/api/performance",
+                        ResponseDTO.class
+                );
+
+        LocalDate localDate = LocalDate.of(2023, 4, 22);
+
+        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+        ObjectMapper om = new ObjectMapper();
+        JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
+        JsonNode data = jsonNode.get("data");
+
+        System.out.println(data.toString());
+
+        Assertions.assertEquals(localDate, LocalDate.parse(data.get(0).get("date").asText(), DateTimeFormatter.ISO_DATE));
+        Assertions.assertEquals(0, data.get(0).get("taskCount").asInt());
+        Assertions.assertEquals(0, data.get(0).get("doneCount").asInt());
     }
 }

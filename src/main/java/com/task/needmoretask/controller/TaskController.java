@@ -56,7 +56,7 @@ public class TaskController {
 
     // [DashBoard] 최근 2주간의 task, done 갯수 return
     @GetMapping("/performance")
-    public ResponseEntity<?> getPerfomance(){
+    public ResponseEntity<?> getPerfomances(){
         List<TaskResponse.PerformanceOutDTO> responceList;
         responceList = taskService.getPerfomance();
 

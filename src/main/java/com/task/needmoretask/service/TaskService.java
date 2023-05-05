@@ -155,11 +155,15 @@ public class TaskService {
                 .plusDays(1).minusNanos(1).minusWeeks(2);
 
         for (int i = 0; i < 14; i++) {
+            date = date.plusDays(1);
             List<Task> tasksPS = taskJPQLRepository.findTasksByDate(date);
+
+            System.out.println(tasksPS.size());
 
             int assignNullSize = 0;
             for (int j = 0; j < tasksPS.size(); j++) {
-                int assignSize = assignRepository.findAssignCountByTaskId(tasksPS.get(i).getId())
+
+                int assignSize = assignRepository.findAssignCountByTaskId(tasksPS.get(j).getId())
                         .orElse(0);
 
                 if(assignSize == 0)
@@ -172,8 +176,6 @@ public class TaskService {
             System.out.println(doneCnt);
 
             performanceOutDTOList.add(new TaskResponse.PerformanceOutDTO(date.toLocalDate(), taskCnt, doneCnt));
-
-            date = date.plusDays(1);
         }
 
         return performanceOutDTOList;
