@@ -17,6 +17,8 @@ import org.springframework.context.annotation.Import;
 import javax.persistence.EntityManager;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -105,7 +107,8 @@ public class TaskRepositoryTest {
 
     @Test
     public void findTasksByDate(){
-        List<Task> tasksPS = taskJPQLRepository.findTasksByDate(LocalDateTime.of(2023, 5, 7,9,50));
+        List<Task> tasksPS = taskJPQLRepository.findTasksByDate(
+                ZonedDateTime.of(2023, 5, 7, 23, 59, 0, 0, ZoneId.systemDefault()));
 
         for(Task t:tasksPS) {
             System.out.println(t.getId());
@@ -120,10 +123,10 @@ public class TaskRepositoryTest {
 
     @Test
     public void findDoneCountByDate(){
-        int cnt = taskJPQLRepository.findDoneCountByDate(LocalDateTime.of(2023, 5, 7,9,50));
+        int cnt = taskJPQLRepository.findDoneCountByDate(
+                ZonedDateTime.of(2023, 5, 7, 23, 59, 0, 0, ZoneId.systemDefault()));
 
         assertThat(cnt).isEqualTo(8);
     }
-
 
 }

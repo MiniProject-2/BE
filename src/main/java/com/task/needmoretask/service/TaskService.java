@@ -18,6 +18,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -147,7 +151,8 @@ public class TaskService {
     public List<TaskResponse.PerformanceOutDTO> getPerfomance(){
         List<TaskResponse.PerformanceOutDTO> performanceOutDTOList = new ArrayList<>();
 
-        LocalDateTime date = LocalDateTime.now().minusWeeks(2);
+        ZonedDateTime date = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS)
+                .plusDays(1).minusNanos(1).minusWeeks(2);
 
         for (int i = 0; i < 14; i++) {
             List<Task> tasksPS = taskJPQLRepository.findTasksByDate(date);
