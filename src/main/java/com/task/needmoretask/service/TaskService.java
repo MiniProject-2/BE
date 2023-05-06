@@ -241,6 +241,10 @@ public class TaskService {
         return progressOutDTO;
     }
 
+//    private TaskResponse.KanbanOutDTO getKanban(){
+//
+//    }
+
     private Task notFoundTask(Long taskId) {
         return taskRepository.findById(taskId).orElseThrow(
                 () -> new Exception404("Task를 찾을 수 없습니다"));

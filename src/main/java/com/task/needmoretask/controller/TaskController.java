@@ -10,6 +10,7 @@ import com.task.needmoretask.service.TaskService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
@@ -78,4 +79,15 @@ public class TaskController {
 
         return ResponseEntity.ok().body(new ResponseDTO<>(responce));
     }
+
+    // [Kanban] 조회
+//    @GetMapping("/kanbans")
+//    public ResponseEntity<?> getKanban(@AuthenticationPrincipal MyUserDetails jwt){
+//
+//
+//        TaskResponse.KanbanOutDTO kanbanOutDTO;
+//        kanbanOutDTO = taskService.getKanban();
+//
+//        return ResponseEntity.ok().body(kanbanOutDTO);
+//    }
 }

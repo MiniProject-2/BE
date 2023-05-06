@@ -119,10 +119,7 @@ public class TaskResponse {
     public static class LatestTaskOutDTO{
         private Long taskId;
 
-        private Long ownerUserId;
-        private String ownerFullname;
-        private String ownerProfile;
-        private User.Department department;
+        private TaskOwner taskOwner;
 
         private ZonedDateTime createdAt;
         private ZonedDateTime updatedAt;
@@ -137,10 +134,12 @@ public class TaskResponse {
         @Builder
         public LatestTaskOutDTO(Task task, List<Assignment> assignments) {
             this.taskId = task.getId();
-            this.ownerUserId = task.getUser().getId();
-            this.ownerFullname = task.getUser().getFullname();
-            this.ownerProfile = task.getUser().getProfile().getUrl();
-            this.department = task.getUser().getDepartment();
+            this.taskOwner = new TaskOwner(
+                    task.getUser().getId(),
+                    task.getUser().getFullname(),
+                    task.getUser().getProfile().getUrl(),
+                    task.getUser().getDepartment());
+
             this.createdAt = task.getCreatedAt();
             this.updatedAt = task.getUpdatedAt();
             this.startAt = task.getStartAt();
@@ -152,6 +151,20 @@ public class TaskResponse {
             this.progress = task.getProgress();
         }
 
+        @Getter
+        public class TaskOwner{
+            private Long userId;
+            private String fullname;
+            private String profileImageUrl;
+            private User.Department department;
+
+            public TaskOwner(Long userId, String fullname, String profileImageUrl, User.Department department) {
+                this.userId = userId;
+                this.fullname = fullname;
+                this.profileImageUrl = profileImageUrl;
+                this.department = department;
+            }
+        }
         @Getter
         public class AssignmentDTO{
             private Long userId;
@@ -215,6 +228,67 @@ public class TaskResponse {
             public Graph(LocalDate date, int count) {
                 this.date = date;
                 this.count = count;
+            }
+        }
+    }
+
+    @Getter
+    public static class KanbanOutDTO{
+        private Long taskId;
+
+        private TaskOwner taskOwner;
+
+        private ZonedDateTime createdAt;
+        private ZonedDateTime updatedAt;
+        private LocalDate startAt;
+        private LocalDate endAt;
+        private String title;
+        private String desc;
+        private List<AssignmentDTO> assignees;
+
+        private Task.Priority priority;
+        private Task.Progress progress;
+
+        @Builder
+        public KanbanOutDTO(Task task, List<Assignment> assignments) {
+            this.taskId = task.getId();
+            this.taskOwner = new TaskOwner(
+                    task.getUser().getId(),
+                    task.getUser().getFullname(),
+                    task.getUser().getProfile().getUrl());
+
+            this.createdAt = task.getCreatedAt();
+            this.updatedAt = task.getUpdatedAt();
+            this.startAt = task.getStartAt();
+            this.endAt = task.getEndAt();
+            this.title = task.getTitle();
+            this.desc = task.getDescription();
+
+            this.assignees = assignments.stream().map(a -> new AssignmentDTO(a.getUser())).collect(Collectors.toList());
+            this.priority = task.getPriority();
+            this.progress = task.getProgress();
+        }
+
+        @Getter
+        public class TaskOwner{
+            private Long userId;
+            private String fullname;
+            private String profileImageUrl;
+
+            public TaskOwner(Long userId, String fullname, String profileImageUrl) {
+                this.userId = userId;
+                this.fullname = fullname;
+                this.profileImageUrl = profileImageUrl;
+            }
+        }
+        @Getter
+        public class AssignmentDTO{
+            private Long userId;
+            private String profileImageUrl;
+
+            public AssignmentDTO(User user) {
+                this.userId = user.getId();
+                this.profileImageUrl = user.getProfile().getUrl();
             }
         }
     }

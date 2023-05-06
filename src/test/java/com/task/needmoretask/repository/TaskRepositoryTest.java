@@ -9,10 +9,12 @@ import com.task.needmoretask.model.task.TaskRepository;
 import com.task.needmoretask.model.user.User;
 import com.task.needmoretask.model.user.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.annotation.DirtiesContext;
 
 import javax.persistence.EntityManager;
 import java.time.LocalDate;
@@ -91,6 +93,8 @@ public class TaskRepositoryTest {
     }
 
     @Test
+    @DisplayName("최신 생성 Task 7개")
+    @DirtiesContext
     public void findLatestTasks_test(){
         List<Task> tasksPS = taskJPQLRepository.findLatestTasks();
 
@@ -106,6 +110,8 @@ public class TaskRepositoryTest {
     }
 
     @Test
+    @DisplayName("지정 날짜에 존재하는 Task")
+    @DirtiesContext
     public void findTasksByDate(){
         List<Task> tasksPS = taskJPQLRepository.findTasksByDate(
                 ZonedDateTime.of(2023, 5, 7, 23, 59, 0, 0, ZoneId.systemDefault()));
@@ -122,6 +128,8 @@ public class TaskRepositoryTest {
     }
 
     @Test
+    @DisplayName("지정 날짜에 존재하는 Done 인 Task 수")
+    @DirtiesContext
     public void findDoneCountByDate(){
         int cnt = taskJPQLRepository.findDoneCountByDate(
                 ZonedDateTime.of(2023, 5, 7, 23, 59, 0, 0, ZoneId.systemDefault()));
@@ -130,6 +138,8 @@ public class TaskRepositoryTest {
     }
 
     @Test
+    @DisplayName("지정 날짜에 존재하는 지정 progress인 Task 수")
+    @DirtiesContext
     public void findCountByProgressTime(){
         int cnt = taskJPQLRepository.findCountByProgressTime(
                 Task.Progress.DONE,
