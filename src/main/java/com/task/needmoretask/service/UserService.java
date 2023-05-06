@@ -5,13 +5,18 @@ import com.task.needmoretask.core.util.S3Uploader;
 import com.task.needmoretask.dto.user.UserResponse;
 import com.task.needmoretask.model.profile.Profile;
 import com.task.needmoretask.model.profile.ProfileRepository;
+import com.task.needmoretask.model.user.User;
 import com.task.needmoretask.model.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -31,5 +36,14 @@ public class UserService {
         Profile profile = Profile.builder().url(storedFileName).build();
         profileRepository.save(profile);
         return new UserResponse.ProfileOut(profile);
+    }
+
+    //유저 조회
+    public UserResponse.UsersOut getUsers(Pageable pageable){
+        Page<User> users = userRepository.findAll(pageable);
+        List<UserResponse.UsersOut.UserOut> userOut = users.stream()
+                .map(UserResponse.UsersOut.UserOut::new)
+                .collect(Collectors.toList());
+        return new UserResponse.UsersOut(userOut,users.isLast());
     }
 }
