@@ -269,6 +269,26 @@ public class TaskService {
         return responseList;
     }
 
+    public List<TaskResponse.CalendarOutDTO> getCalendar(int year, int month){
+        LocalDate date = LocalDate.of(year, month, 1);
+
+        List<Task> tasksPS = taskJPQLRepository.findTaskByStartEndDate(date);
+
+        List<TaskResponse.CalendarOutDTO> responseList = new ArrayList<>();
+
+        for(Task task : tasksPS) {
+            List<Assignment> assigneesPS;
+            assigneesPS = assignRepository.findAssigneeByTaskId(task.getId()).orElse(new ArrayList<>());
+
+            TaskResponse.CalendarOutDTO calendarOutDTO = new TaskResponse.CalendarOutDTO(
+                    task, assigneesPS
+            );
+            responseList.add(calendarOutDTO);
+        }
+
+        return responseList;
+    }
+
     private Task notFoundTask(Long taskId) {
         return taskRepository.findById(taskId).orElseThrow(
                 () -> new Exception404("Task를 찾을 수 없습니다"));
