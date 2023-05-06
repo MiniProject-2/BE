@@ -309,6 +309,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @DisplayName("최신 생성 Task 7개")
     @DirtiesContext
     void getLatestTasks() {
 
@@ -325,6 +326,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @DisplayName("최근 2주간의 task, done 갯수")
     @DirtiesContext
     void getPerfomance() throws JsonProcessingException {
 
@@ -334,7 +336,7 @@ class TaskControllerTest {
                         ResponseDTO.class
                 );
 
-        LocalDate localDate = LocalDate.of(2023, 4, 22);
+        LocalDate localDate = LocalDate.now().minusWeeks(2).plusDays(1);
 
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
         ObjectMapper om = new ObjectMapper();
@@ -349,6 +351,7 @@ class TaskControllerTest {
     }
 
     @Test
+    @DisplayName("최근 1주동안의 통계 데이터")
     @DirtiesContext
     void getProgress() throws JsonProcessingException {
 
