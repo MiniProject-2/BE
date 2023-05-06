@@ -90,6 +90,7 @@ public class TaskRepositoryTest {
 
             taskRepository.save(task1);
         }
+
     }
 
     @Test
@@ -162,6 +163,24 @@ public class TaskRepositoryTest {
             System.out.println(t.getDescription());
             System.out.println(t.getUser());
             System.out.println(t.getProgress());
+            System.out.println();
+        }
+        assertThat(tasksPS.size()).isEqualTo(8);
+    }
+
+    @Test
+    @DisplayName("[Calendar] Calendar조회")
+    @DirtiesContext
+    public void findTaskByStartEndDate(){
+        LocalDate date = LocalDate.of(2023, 5, 2);
+        List<Task> tasksPS = taskJPQLRepository.findTaskByStartEndDate(date);
+
+        for(Task t:tasksPS) {
+            System.out.println(t.getId());
+            System.out.println(t.getTitle());
+            System.out.println(t.getDescription());
+            System.out.println(t.getStartAt());
+            System.out.println(t.getEndAt());
             System.out.println();
         }
         assertThat(tasksPS.size()).isEqualTo(8);
