@@ -116,4 +116,38 @@ class UserControllerTest {
             Assertions.assertEquals(10,data.get("users").size());
         }
     }
+
+    @Nested
+    @DisplayName("User 검색")
+    class SearchUsers{
+        @Test
+        @DirtiesContext
+        @DisplayName("성공")
+        void searchUsers() throws JsonProcessingException {
+            //given
+            int page = 0;
+            String fullName = "user10";
+            User user = userRepository.findById(userId1).orElse(null);
+            HttpHeaders headers = headers(user);
+            HttpEntity<?> requestEntity = new HttpEntity<>(headers);
+
+            //when
+            ResponseEntity<?> response = testRestTemplate
+                    .exchange(
+                            "/api/users/search?fullName="+fullName+"&page="+page,
+                            HttpMethod.GET,
+                            requestEntity,
+                            ResponseDTO.class
+                    );
+
+            //then
+            Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+            ObjectMapper om = new ObjectMapper();
+            JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
+            Assertions.assertEquals("성공", jsonNode.get("msg").asText());
+            JsonNode data = jsonNode.get("data");
+            Assertions.assertEquals(2,data.get("users").size());
+            Assertions.assertTrue(data.get("isLast").asBoolean());
+        }
+    }
 }

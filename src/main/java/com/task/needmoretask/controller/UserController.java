@@ -34,4 +34,12 @@ public class UserController {
         UserResponse.UsersOut users = userService.getUsers(pageable);
         return ResponseEntity.ok().body(new ResponseDTO<>(users));
     }
+
+    //유저 검색
+    @GetMapping("/users/search")
+    public ResponseEntity<?> searchUsers(@RequestParam("fullName") String fullName, @RequestParam("page") int page){
+        Pageable pageable = PageRequest.of(page,10);
+        UserResponse.UsersOut users = userService.searchUsers(fullName,pageable);
+        return ResponseEntity.ok().body(new ResponseDTO<>(users));
+    }
 }

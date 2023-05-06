@@ -14,4 +14,7 @@ public interface UserRepository extends JpaRepository<User,Long> {
 
     @Query("select u from User u where u.isDeleted=false")
     Page<User> findAll(Pageable pageable);
+
+    @Query("select u from User u where u.isDeleted=false and u.fullname like %:fullName%")
+    Page<User> findUsersByFullName(@Param("fullName") String fullName, Pageable pageable);
 }

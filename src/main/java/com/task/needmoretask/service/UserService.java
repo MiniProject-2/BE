@@ -46,4 +46,13 @@ public class UserService {
                 .collect(Collectors.toList());
         return new UserResponse.UsersOut(userOut,users.isLast());
     }
+
+    //유저 검색
+    public UserResponse.UsersOut searchUsers(String fullName, Pageable pageable){
+        Page<User> users = userRepository.findUsersByFullName(fullName,pageable);
+        List<UserResponse.UsersOut.UserOut> userOut = users.stream()
+                .map(UserResponse.UsersOut.UserOut::new)
+                .collect(Collectors.toList());
+        return new UserResponse.UsersOut(userOut,users.isLast());
+    }
 }
