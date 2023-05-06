@@ -370,4 +370,36 @@ class TaskControllerTest {
 
         System.out.println(data.toString());
     }
+
+    @Test
+    @DisplayName("[Kanban] 내가 속한 task 조회")
+    @DirtiesContext
+    void getKanbans() throws JsonProcessingException {
+        //given
+        Long userid = 1L;
+        User user = userRepository.findById(userid).orElse(null);
+        HttpHeaders headers = headers(user);
+        HttpEntity<?> requestEntity = new HttpEntity<>(headers);
+
+        //when
+        ResponseEntity<?> response = testRestTemplate
+                .exchange(
+                        "/api/kanbans",
+                        HttpMethod.GET,
+                        requestEntity,
+                        ResponseDTO.class
+                );
+
+
+        System.out.println();
+        //then
+        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+        ObjectMapper om = new ObjectMapper();
+        JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
+        Assertions.assertEquals("성공", jsonNode.get("msg").asText());
+        JsonNode data = jsonNode.get("data");
+        System.out.println(data.toString());
+        Assertions.assertEquals(userid,data.get(0).get("taskOwner").get("userId").asLong());
+        Assertions.assertEquals(1 ,data.get(0).get("assignees").size());
+    }
 }

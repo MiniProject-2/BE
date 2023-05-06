@@ -83,6 +83,6 @@ public class TaskController {
         List<TaskResponse.KanbanOutDTO> kanbanOutDTOList;
         kanbanOutDTOList = taskService.getKanban(id);
 
-        return ResponseEntity.ok().body(kanbanOutDTOList);
+        return ResponseEntity.ok().body(new ResponseDTO<>(kanbanOutDTOList));
     }
 }
