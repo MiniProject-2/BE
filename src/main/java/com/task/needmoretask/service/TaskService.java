@@ -1,7 +1,7 @@
 package com.task.needmoretask.service;
 
 
-import com.task.needmoretask.core.exception.Exception401;
+import com.task.needmoretask.core.exception.Exception403;
 import com.task.needmoretask.core.exception.Exception404;
 import com.task.needmoretask.core.exception.Exception500;
 import com.task.needmoretask.dto.task.TaskRequest;
@@ -14,10 +14,8 @@ import com.task.needmoretask.model.task.TaskRepository;
 import com.task.needmoretask.model.user.User;
 import com.task.needmoretask.model.user.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.GetMapping;
 
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
@@ -255,6 +253,6 @@ public class TaskService {
     // Task에 대한 유저 권한 체크(본인 Task가 아닌 경우(어드민이 아닌 유저) 수정, 삭제 불가)
     private void unAuthorizedTask(Task task, User loginUser) {
         if (loginUser.getRole() == User.Role.USER && !task.getUser().getId().equals(loginUser.getId()))
-            throw new Exception401("권한이 없습니다");
+            throw new Exception403("권한이 없습니다");
     }
 }

@@ -200,8 +200,9 @@ class TaskControllerTest {
 
             //when
             ResponseEntity<?> response = testRestTemplate
-                    .postForEntity(
-                            "/api/task/" + taskId + "/update",
+                    .exchange(
+                            "/api/task/" + taskId,
+                            HttpMethod.PUT,
                             requestEntity,
                             ResponseDTO.class
                     );
@@ -233,8 +234,9 @@ class TaskControllerTest {
 
             //when
             ResponseEntity<?> response = testRestTemplate
-                    .postForEntity(
-                            "/api/task/" + taskId + "/delete",
+                    .exchange(
+                            "/api/task/" + taskId,
+                            HttpMethod.DELETE,
                             requestEntity,
                             ResponseDTO.class
                     );
