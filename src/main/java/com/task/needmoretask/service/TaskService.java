@@ -243,9 +243,13 @@ public class TaskService {
 
     // [Kanban] 내가 속한 Task 가져오기
     public List<TaskResponse.KanbanOutDTO> getKanban(Long userId){
-        List<Task> ownerTaskList = taskJPQLRepository.findTasksByUserId(userId);
-        List<Task> assignTaskList = assignRepository.findAssignTaskByUserId(userId).orElse(new ArrayList<>());
+        userRepository.findById(userId)
+                .orElseThrow(() -> new Exception404("유저를 찾을 수 없습니다"));
 
+        List<Task> ownerTaskList = taskJPQLRepository.findTasksByUserId(userId);
+
+        List<Assignment> assignList = assignRepository.findAssignTaskByUserId(userId).orElse(new ArrayList<>());
+        List<Task> assignTaskList = assignList.stream().map(Assignment::getTask).collect(Collectors.toList());
         HashSet<Task> myTaskList = new HashSet<>();
         myTaskList.addAll(ownerTaskList);
         myTaskList.addAll(assignTaskList);

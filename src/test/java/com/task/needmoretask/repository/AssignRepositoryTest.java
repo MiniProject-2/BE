@@ -1,6 +1,9 @@
 package com.task.needmoretask.repository;
 
-
+import com.task.needmoretask.core.exception.Exception404;
+import com.task.needmoretask.dto.task.TaskRequest;
+import com.task.needmoretask.model.assign.AssignRepository;
+import com.task.needmoretask.model.assign.Assignment;
 import com.task.needmoretask.model.profile.Profile;
 import com.task.needmoretask.model.profile.ProfileRepository;
 import com.task.needmoretask.model.task.Task;
@@ -13,29 +16,24 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 
 import javax.persistence.EntityManager;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Import({TaskJPQLRepository.class})
 @DataJpaTest
-public class TaskRepositoryTest {
-
+public class AssignRepositoryTest {
 
     @Autowired
     private UserRepository userRepository;
     @Autowired
-    private TaskJPQLRepository taskJPQLRepository;
-    @Autowired
     private TaskRepository taskRepository;
+    @Autowired
+    private AssignRepository assignRepository;
 
     @Autowired
     private EntityManager em;
@@ -88,83 +86,31 @@ public class TaskRepositoryTest {
                     .priority(Task.Priority.LOW)
                     .build();
 
-            taskRepository.save(task1);
+            Assignment assignment = Assignment.builder()
+                    .user(userPS)
+                    .task(task1)
+                    .build();
+
+            assignRepository.save(assignment);
         }
+
     }
 
     @Test
-    @DisplayName("최신 생성 Task 7개")
+    @DisplayName("[Kanban] userId로 Assignment 조회")
     @DirtiesContext
-    public void findLatestTasks_test(){
-        List<Task> tasksPS = taskJPQLRepository.findLatestTasks();
-
-       for(Task t:tasksPS) {
-           System.out.println(t.getId());
-           System.out.println(t.getTitle());
-           System.out.println(t.getDescription());
-           System.out.println(t.getUser());
-           System.out.println(t.getProgress());
-           System.out.println();
-       }
-        assertThat(tasksPS.size()).isEqualTo(7);
-    }
-
-    @Test
-    @DisplayName("지정 날짜에 존재하는 Task")
-    @DirtiesContext
-    public void findTasksByDate(){
-        List<Task> tasksPS = taskJPQLRepository.findTasksByDate(
-                ZonedDateTime.of(2023, 5, 7, 23, 59, 0, 0, ZoneId.systemDefault()));
-
-        for(Task t:tasksPS) {
-            System.out.println(t.getId());
-            System.out.println(t.getTitle());
-            System.out.println(t.getDescription());
-            System.out.println(t.getUser());
-            System.out.println(t.getProgress());
-            System.out.println();
-        }
-        assertThat(tasksPS.size()).isEqualTo(8);
-    }
-
-    @Test
-    @DisplayName("지정 날짜에 존재하는 Done 인 Task 수")
-    @DirtiesContext
-    public void findDoneCountByDate(){
-        int cnt = taskJPQLRepository.findDoneCountByDate(
-                ZonedDateTime.of(2023, 5, 7, 23, 59, 0, 0, ZoneId.systemDefault()));
-
-        assertThat(cnt).isEqualTo(8);
-    }
-
-    @Test
-    @DisplayName("지정 날짜에 존재하는 지정 progress인 Task 수")
-    @DirtiesContext
-    public void findCountByProgressTime(){
-        int cnt = taskJPQLRepository.findCountByProgressTime(
-                Task.Progress.DONE,
-                ZonedDateTime.of(2023, 5, 6, 3, 39, 0, 0, ZoneId.systemDefault())
-        );
-
-        assertThat(cnt).isEqualTo(8);
-    }
-
-    @Test
-    @DisplayName("[Kanban] 내가 Owner로 있는 task")
-    @DirtiesContext
-    public void findTasksByUserId(){
+    public void findAssignTaskByUserId(){
         Long userId = 1L;
-        List<Task> tasksPS = taskJPQLRepository.findTasksByUserId(userId);
+        List<Assignment> assignmentsPS = assignRepository.findAssignTaskByUserId(userId)
+                .orElse(new ArrayList<>());
 
-        for(Task t:tasksPS) {
-            System.out.println(t.getId());
-            System.out.println(t.getTitle());
-            System.out.println(t.getDescription());
-            System.out.println(t.getUser());
-            System.out.println(t.getProgress());
+        for(Assignment a:assignmentsPS) {
+            System.out.println(a.getId());
+            System.out.println(a.getUser());
+            System.out.println(a.getTask());
             System.out.println();
         }
-        assertThat(tasksPS.size()).isEqualTo(8);
+        assertThat(assignmentsPS.size()).isEqualTo(8);
     }
 
 }
