@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.task.needmoretask.core.auth.jwt.MyJwtProvider;
 import com.task.needmoretask.dto.ResponseDTO;
+import com.task.needmoretask.dto.user.UserRequest;
 import com.task.needmoretask.model.profile.Profile;
 import com.task.needmoretask.model.profile.ProfileRepository;
 import com.task.needmoretask.model.user.User;
@@ -14,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -28,6 +30,8 @@ class UserControllerTest {
     TestRestTemplate testRestTemplate;
     @Autowired
     UserRepository userRepository;
+    @Autowired
+    BCryptPasswordEncoder passwordEncoder;
     private HttpHeaders headers(User user){
         String jwt = MyJwtProvider.create(user);
 
@@ -48,7 +52,7 @@ class UserControllerTest {
         List<User> users = new ArrayList<>();
         User user1 = User.builder()
                 .email("user1@email.com")
-                .password("1234")
+                .password(passwordEncoder.encode("1234"))
                 .phone("010-0000-0000")
                 .fullname("user1")
                 .department(User.Department.HR)
@@ -148,6 +152,56 @@ class UserControllerTest {
             JsonNode data = jsonNode.get("data");
             Assertions.assertEquals(2,data.get("users").size());
             Assertions.assertTrue(data.get("isLast").asBoolean());
+        }
+    }
+
+    @Nested
+    @DisplayName("User 수정")
+    class UpdateUserInfo{
+        @Test
+        @DirtiesContext
+        @DisplayName("성공")
+        void updateUserInfo() throws JsonProcessingException {
+            //given
+            String phone = "010-1234-5678";
+            String fullName = "user0";
+            User.Department department = User.Department.MANAGEMENT;
+            int joinCompanyYear = 2022;
+            long profileId = 1;
+            UserRequest.UserIn userRequest = UserRequest.UserIn.builder()
+                    .password("")
+                    .passwordCheck("")
+                    .phone(phone)
+                    .fullName(fullName)
+                    .department(department)
+                    .joinCompanyYear(joinCompanyYear)
+                    .profileId(profileId)
+                    .build();
+            User user = userRepository.findById(userId1).orElse(null);
+            HttpHeaders headers = headers(user);
+            HttpEntity<?> requestEntity = new HttpEntity<>(userRequest, headers);
+
+            //when
+            ResponseEntity<?> response = testRestTemplate
+                    .exchange(
+                            "/api/user/"+userId1,
+                            HttpMethod.PUT,
+                            requestEntity,
+                            ResponseDTO.class
+                    );
+
+            //then
+            Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+            ObjectMapper om = new ObjectMapper();
+            JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
+            Assertions.assertEquals("성공", jsonNode.get("msg").asText());
+            JsonNode data = jsonNode.get("data");
+            Assertions.assertEquals(userId1,data.get("userId").asLong());
+            Assertions.assertEquals(fullName,data.get("fullName").asText());
+            Assertions.assertEquals(department.toString(),data.get("department").asText());
+            Assertions.assertEquals(profileId,data.get("profileId").asLong());
+            Assertions.assertEquals(phone,data.get("phone").asText());
+            Assertions.assertEquals(joinCompanyYear,data.get("joinCompanyYear").asInt());
         }
     }
 }

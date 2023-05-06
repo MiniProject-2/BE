@@ -51,4 +51,27 @@ public class UserResponse {
             }
         }
     }
+
+    @Getter
+    public static class UserOut{
+        private Long userId;
+        private String fullName;
+        private User.Department department;
+        private String email;
+        private Long profileId;
+        private String profileImageUrl;
+        private String phone;
+        private int joinCompanyYear;
+
+        public UserOut(User user) {
+            this.userId = user.getId();
+            this.fullName = user.getFullname();
+            this.department = user.getDepartment();
+            this.email = user.getEmail();
+            this.profileId = user.getProfile().getId();
+            this.profileImageUrl = user.getProfile().getUrl();
+            this.phone = user.getPhone();
+            this.joinCompanyYear = user.getJoinCompanyYear();
+        }
+    }
 }

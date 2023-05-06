@@ -1,6 +1,8 @@
 package com.task.needmoretask.controller;
 
+import com.task.needmoretask.core.auth.session.MyUserDetails;
 import com.task.needmoretask.dto.ResponseDTO;
+import com.task.needmoretask.dto.user.UserRequest;
 import com.task.needmoretask.dto.user.UserResponse;
 import com.task.needmoretask.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -8,9 +10,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.validation.Valid;
 import java.io.IOException;
 
 @RequestMapping("/api")
@@ -41,5 +45,19 @@ public class UserController {
         Pageable pageable = PageRequest.of(page,10);
         UserResponse.UsersOut users = userService.searchUsers(fullName,pageable);
         return ResponseEntity.ok().body(new ResponseDTO<>(users));
+    }
+
+    //개인정보 조회
+    @GetMapping("/user/{id}")
+    public ResponseEntity<?> getUserInfo(@PathVariable Long id, @AuthenticationPrincipal MyUserDetails myUserDetails){
+        UserResponse.UserOut user = userService.getUserInfo(id,myUserDetails.getUser());
+        return ResponseEntity.ok().body(new ResponseDTO<>(user));
+    }
+
+    //개인정보 수정
+    @PutMapping("/user/{id}")
+    public ResponseEntity<?> updateUserInfo(@PathVariable Long id, @RequestBody @Valid UserRequest.UserIn userIn, @AuthenticationPrincipal MyUserDetails myUserDetails){
+        UserResponse.UserOut user = userService.updateUserInfo(id,userIn,myUserDetails.getUser());
+        return ResponseEntity.ok().body(new ResponseDTO<>(user));
     }
 }
