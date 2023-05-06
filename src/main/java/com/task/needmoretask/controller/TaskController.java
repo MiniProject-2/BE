@@ -86,7 +86,8 @@ public class TaskController {
         return ResponseEntity.ok().body(new ResponseDTO<>(kanbanOutDTOList));
     }
 
-    @GetMapping("/calenders")
+    // [Calendar] 조회
+    @GetMapping("/calendars")
     public ResponseEntity<?> getCalendars(
             @RequestParam("year") int year,
             @RequestParam("month") int month){

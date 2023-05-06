@@ -22,6 +22,7 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -366,6 +367,7 @@ class TaskControllerTest {
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
         ObjectMapper om = new ObjectMapper();
         JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
+        Assertions.assertEquals("성공", jsonNode.get("msg").asText());
         JsonNode data = jsonNode.get("data");
 
         System.out.println(data.toString());
@@ -400,5 +402,32 @@ class TaskControllerTest {
         System.out.println(data.toString());
         Assertions.assertEquals(userid,data.get(0).get("taskOwner").get("userId").asLong());
         Assertions.assertEquals(1 ,data.get(0).get("assignee").size());
+    }
+
+    @Test
+    @DisplayName("[Calendar] 조회")
+    @DirtiesContext
+    void getCalendar() throws JsonProcessingException {
+
+        String url = "/api/calendars";
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url)
+                .queryParam("year", "2023")
+                .queryParam("month", "5");
+
+        ResponseEntity<ResponseDTO> response = testRestTemplate
+                .getForEntity(
+                        builder.toUriString(),
+                        ResponseDTO.class
+                );
+
+        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+        ObjectMapper om = new ObjectMapper();
+        JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
+        Assertions.assertEquals("성공", jsonNode.get("msg").asText());
+        JsonNode data = jsonNode.get("data");
+
+        Assertions.assertEquals(8, data.size());
+
+        System.out.println(data.toString());
     }
 }
