@@ -3,6 +3,7 @@ package com.task.needmoretask.core.util;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.task.needmoretask.core.exception.Exception400;
 import com.task.needmoretask.core.exception.Exception500;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +16,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
+import java.text.Normalizer;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -55,8 +56,30 @@ public class S3Uploader {
     private Optional<File> convert(MultipartFile file) throws UnsupportedEncodingException {
         UUID uuid = UUID.randomUUID();
         String originalFilename = file.getOriginalFilename();
-        String convertedFilename = new String(originalFilename != null ? originalFilename.getBytes(StandardCharsets.UTF_8) : new byte[0], StandardCharsets.ISO_8859_1);
-        return Optional.of(uuid + "_" + convertedFilename).map(File::new).filter(f -> {
+        StringBuilder convertedFilename = new StringBuilder();
+        log.debug(String.valueOf(originalFilename));
+        if (originalFilename == null) throw new Exception400("profile", "프로필 이미지 업로드 실패");
+
+        // 파일 이름에서 확장자 추출
+        int extensionIndex = originalFilename.lastIndexOf(".");
+        String extension = extensionIndex == -1 ? "" : originalFilename.substring(extensionIndex);
+
+        log.debug("extensionIndex: " + extensionIndex + ", extension: " + extension);
+
+        // 확장자가 포함된 파일 이름에서 순수 파일 이름 추출
+        String name = originalFilename.replace(" ","").substring(0, extensionIndex == -1 ? originalFilename.length() : extensionIndex);
+        name = Normalizer.normalize(name, Normalizer.Form.NFD); // 정규화
+        name = name.replaceAll("[^\\p{ASCII}]", ""); // 영어 알파벳만 남기고 제거
+        name = name.toLowerCase().substring(0, Math.min(5, name.length())); // 소문자 변환 및 길이 제한
+
+        log.debug("줄인 name: " + name);
+
+        // 변환된 파일 이름에 확장자 추가
+        convertedFilename.append(name).append(extension);
+
+        log.debug("확장자가 붙은 name: " + convertedFilename);
+
+        return Optional.of(uuid.toString().substring(0,5)+convertedFilename).map(File::new).filter(f -> {
             try {
                 return f.createNewFile();
             } catch (IOException e) {
