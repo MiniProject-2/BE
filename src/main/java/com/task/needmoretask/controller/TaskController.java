@@ -4,13 +4,10 @@ import com.task.needmoretask.core.auth.session.MyUserDetails;
 import com.task.needmoretask.dto.ResponseDTO;
 import com.task.needmoretask.dto.task.TaskRequest;
 import com.task.needmoretask.dto.task.TaskResponse;
-import com.task.needmoretask.model.assign.AssignRepository;
-import com.task.needmoretask.model.task.TaskJPQLRepository;
 import com.task.needmoretask.service.TaskService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,8 +19,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TaskController {
     private final TaskService taskService;
-    private TaskJPQLRepository taskJPQLRepository;
-    private AssignRepository assignRepository;
 
     // Task 생성
     @PostMapping("/task")
@@ -80,14 +75,14 @@ public class TaskController {
         return ResponseEntity.ok().body(new ResponseDTO<>(responce));
     }
 
-    // [Kanban] 조회
-//    @GetMapping("/kanbans")
-//    public ResponseEntity<?> getKanban(@AuthenticationPrincipal MyUserDetails jwt){
-//
-//
-//        TaskResponse.KanbanOutDTO kanbanOutDTO;
-//        kanbanOutDTO = taskService.getKanban();
-//
-//        return ResponseEntity.ok().body(kanbanOutDTO);
-//    }
+    // [Kanban] 내가 속한 task 조회
+    @GetMapping("/kanbans")
+    public ResponseEntity<?> getKanbans(@AuthenticationPrincipal MyUserDetails myUserDetails){
+        Long id = myUserDetails.getUser().getId();
+
+        List<TaskResponse.KanbanOutDTO> kanbanOutDTOList;
+        kanbanOutDTOList = taskService.getKanban(id);
+
+        return ResponseEntity.ok().body(kanbanOutDTOList);
+    }
 }

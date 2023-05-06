@@ -22,6 +22,7 @@ import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -149,8 +150,8 @@ public class TaskService {
         List<TaskResponse.LatestTaskOutDTO> responseList = new ArrayList<>();
         List<Task> tasksPS = taskJPQLRepository.findLatestTasks();
 
-        List<Assignment> assigneesPS;
         for (int i = 0; i < tasksPS.size(); i++) {
+            List<Assignment> assigneesPS;
             assigneesPS = assignRepository.findAssigneeByTaskId(tasksPS.get(i).getId()).orElse(new ArrayList<>());
 
             TaskResponse.LatestTaskOutDTO latestTaskOutDTO = new TaskResponse.LatestTaskOutDTO(
@@ -240,9 +241,29 @@ public class TaskService {
         return progressOutDTO;
     }
 
-//    private TaskResponse.KanbanOutDTO getKanban(){
-//
-//    }
+    // [Kanban] 내가 속한 Task 가져오기
+    public List<TaskResponse.KanbanOutDTO> getKanban(Long userId){
+        List<Task> ownerTaskList = taskJPQLRepository.findTasksByUserId(userId);
+        List<Task> assignTaskList = assignRepository.findAssignTaskByUserId(userId).orElse(new ArrayList<>());
+
+        HashSet<Task> myTaskList = new HashSet<>();
+        myTaskList.addAll(ownerTaskList);
+        myTaskList.addAll(assignTaskList);
+
+        List<TaskResponse.KanbanOutDTO> responseList = new ArrayList<>();
+
+        for(Task task : myTaskList) {
+            List<Assignment> assigneesPS;
+            assigneesPS = assignRepository.findAssigneeByTaskId(task.getId()).orElse(new ArrayList<>());
+
+            TaskResponse.KanbanOutDTO kanbanOutDTO = new TaskResponse.KanbanOutDTO(
+                    task, assigneesPS
+            );
+            responseList.add(kanbanOutDTO);
+        }
+
+        return responseList;
+    }
 
     private Task notFoundTask(Long taskId) {
         return taskRepository.findById(taskId).orElseThrow(

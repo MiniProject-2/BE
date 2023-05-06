@@ -5,7 +5,6 @@ import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -93,6 +92,22 @@ public class TaskJPQLRepository {
                         .getSingleResult();
 
         return taskDoneCnt.intValue();
+    }
+
+    // OwnerId가 userId랑 일치하는 Task 검색
+    public List<Task> findTasksByUserId(Long userId){
+        TypedQuery<Task> query =
+                em.createQuery("select t " +
+                                "from Task t " +
+                                "join fetch t.user " +
+                                "where t.isDeleted = false " +
+                                "and t.user.id = :userId"
+                        ,Task.class)
+                                .setParameter("userId", userId);
+
+        List<Task> taskListPS = query.getResultList();
+
+        return taskListPS;
     }
 
 }

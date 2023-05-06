@@ -1,5 +1,6 @@
 package com.task.needmoretask.model.assign;
 
+import com.task.needmoretask.model.task.Task;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -15,4 +16,9 @@ public interface AssignRepository extends JpaRepository<Assignment,Long> {
     // task의 assign된 user 수 가져오기
     @Query("select COUNT(a) from Assignment a where a.task.id = :taskId and a.isDeleted = false")
     Optional<Integer> findAssignCountByTaskId(@Param("taskId") Long taskId);
+
+    @Query("select t from Assignment a join fetch a.user u join fetch a.task t " +
+            "where a.isDeleted = false " +
+            "and u.id = :userId")
+    Optional<List<Task>> findAssignTaskByUserId(@Param("userId") Long userId);
 }
