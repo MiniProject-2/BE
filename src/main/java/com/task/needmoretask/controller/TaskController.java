@@ -32,14 +32,14 @@ public class TaskController {
     }
 
     // Task 수정
-    @PostMapping("/task/{id}/update")
+    @PutMapping("/task/{id}")
     public ResponseEntity<?> updateTask(@PathVariable Long id, @RequestBody @Valid TaskRequest taskRequest, Errors errors, @AuthenticationPrincipal MyUserDetails myUserDetails){
         TaskResponse.Test task = taskService.updateTask(id, taskRequest, myUserDetails.getUser());
         return ResponseEntity.ok().body(new ResponseDTO<>(task));
     }
 
     // Task 삭제
-    @PostMapping("/task/{id}/delete")
+    @DeleteMapping("/task/{id}")
     public ResponseEntity<?> deleteTask(@PathVariable Long id, @AuthenticationPrincipal MyUserDetails myUserDetails){
         TaskResponse.Delete delete = taskService.deleteTask(id,myUserDetails.getUser());
         return ResponseEntity.ok().body(new ResponseDTO<>(delete));
