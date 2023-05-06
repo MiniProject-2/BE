@@ -196,7 +196,6 @@ public class TaskService {
     }
 
     // [DashBoard] 최근 1주일간의 통계 데이터
-
     public TaskResponse.ProgressOutDTO getProgress(){
         TaskResponse.ProgressOutDTO progressOutDTO;
 
