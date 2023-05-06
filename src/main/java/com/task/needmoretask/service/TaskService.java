@@ -68,7 +68,7 @@ public class TaskService {
     public TaskResponse.Test updateTask(Long id, TaskRequest request, User user) {
         List<Assignment> newAssigns = new ArrayList<>();
         Task task = notFoundTask(id);
-        unAuthorizedTask(task, user);
+        forbiddenTask(task, user);
         task.update(request);
         /*
          * Assignee가 있는지 없는지 있다가 없앴는지 없다가 만들었는지 알 수 없기 때문에
@@ -111,7 +111,7 @@ public class TaskService {
     @Transactional
     public TaskResponse.Delete deleteTask(Long id, User user) {
         Task task = notFoundTask(id);
-        unAuthorizedTask(task,user);
+        forbiddenTask(task,user);
         List<Assignment> assignments;
         try {
             assignments = assignRepository.findAssigneeByTaskId(task.getId()).orElse(Collections.emptyList());
@@ -275,7 +275,7 @@ public class TaskService {
     }
 
     // Task에 대한 유저 권한 체크(본인 Task가 아닌 경우(어드민이 아닌 유저) 수정, 삭제 불가)
-    private void unAuthorizedTask(Task task, User loginUser) {
+    private void forbiddenTask(Task task, User loginUser) {
         if (loginUser.getRole() == User.Role.USER && !task.getUser().getId().equals(loginUser.getId()))
             throw new Exception403("권한이 없습니다");
     }
