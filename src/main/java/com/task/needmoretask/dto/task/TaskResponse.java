@@ -244,7 +244,7 @@ public class TaskResponse {
         private LocalDate endAt;
         private String title;
         private String desc;
-        private List<AssignmentDTO> assignees;
+        private List<AssignmentDTO> assignee;
 
         private Task.Priority priority;
         private Task.Progress progress;
@@ -264,7 +264,68 @@ public class TaskResponse {
             this.title = task.getTitle();
             this.desc = task.getDescription();
 
-            this.assignees = assignments.stream().map(a -> new AssignmentDTO(a.getUser())).collect(Collectors.toList());
+            this.assignee = assignments.stream().map(a -> new AssignmentDTO(a.getUser())).collect(Collectors.toList());
+            this.priority = task.getPriority();
+            this.progress = task.getProgress();
+        }
+
+        @Getter
+        public class TaskOwner{
+            private Long userId;
+            private String fullname;
+            private String profileImageUrl;
+
+            public TaskOwner(Long userId, String fullname, String profileImageUrl) {
+                this.userId = userId;
+                this.fullname = fullname;
+                this.profileImageUrl = profileImageUrl;
+            }
+        }
+        @Getter
+        public class AssignmentDTO{
+            private Long userId;
+            private String profileImageUrl;
+
+            public AssignmentDTO(User user) {
+                this.userId = user.getId();
+                this.profileImageUrl = user.getProfile().getUrl();
+            }
+        }
+    }
+
+    @Getter
+    public static class CalendarOutDTO{
+        private Long taskId;
+
+        private CalendarOutDTO.TaskOwner taskOwner;
+
+        private ZonedDateTime createdAt;
+        private ZonedDateTime updatedAt;
+        private LocalDate startAt;
+        private LocalDate endAt;
+        private String title;
+        private String desc;
+        private List<CalendarOutDTO.AssignmentDTO> assignee;
+
+        private Task.Priority priority;
+        private Task.Progress progress;
+
+        @Builder
+        public CalendarOutDTO(Task task, List<Assignment> assignments) {
+            this.taskId = task.getId();
+            this.taskOwner = new CalendarOutDTO.TaskOwner(
+                    task.getUser().getId(),
+                    task.getUser().getFullname(),
+                    task.getUser().getProfile().getUrl());
+
+            this.createdAt = task.getCreatedAt();
+            this.updatedAt = task.getUpdatedAt();
+            this.startAt = task.getStartAt();
+            this.endAt = task.getEndAt();
+            this.title = task.getTitle();
+            this.desc = task.getDescription();
+
+            this.assignee = assignments.stream().map(a -> new CalendarOutDTO.AssignmentDTO(a.getUser())).collect(Collectors.toList());
             this.priority = task.getPriority();
             this.progress = task.getProgress();
         }

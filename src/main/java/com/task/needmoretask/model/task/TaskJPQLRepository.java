@@ -5,6 +5,7 @@ import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -104,9 +105,22 @@ public class TaskJPQLRepository {
                         ,Task.class)
                                 .setParameter("userId", userId);
 
-        List<Task> taskListPS = query.getResultList();
+        return query.getResultList();
+    }
 
-        return taskListPS;
+    public List<Task> findTaskByStartEndDate(LocalDate date){
+        TypedQuery<Task> query =
+                em.createQuery("select t " +
+                        "from Task t " +
+                        "where t.isDeleted = false " +
+                        "and ((YEAR(t.startAt) = YEAR(:date) " +
+                                        "and MONTH(t.startAt) = MONTH(:date)) " +
+                        "or (YEAR(t.endAt) = YEAR(:date) " +
+                                        "and MONTH(t.endAt) = MONTH(:date)))"
+                , Task.class)
+                        .setParameter("date", date);
+
+        return query.getResultList();
     }
 
 }

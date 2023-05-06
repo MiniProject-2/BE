@@ -391,7 +391,6 @@ class TaskControllerTest {
                 );
 
 
-        System.out.println();
         //then
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
         ObjectMapper om = new ObjectMapper();
@@ -400,6 +399,6 @@ class TaskControllerTest {
         JsonNode data = jsonNode.get("data");
         System.out.println(data.toString());
         Assertions.assertEquals(userid,data.get(0).get("taskOwner").get("userId").asLong());
-        Assertions.assertEquals(1 ,data.get(0).get("assignees").size());
+        Assertions.assertEquals(1 ,data.get(0).get("assignee").size());
     }
 }
