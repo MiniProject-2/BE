@@ -99,7 +99,6 @@ public class TaskJPQLRepository {
         TypedQuery<Task> query =
                 em.createQuery("select t " +
                                 "from Task t " +
-                                "join fetch t.user " +
                                 "where t.isDeleted = false " +
                                 "and t.user.id = :userId"
                         ,Task.class)

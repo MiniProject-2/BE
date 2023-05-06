@@ -17,8 +17,8 @@ public interface AssignRepository extends JpaRepository<Assignment,Long> {
     @Query("select COUNT(a) from Assignment a where a.task.id = :taskId and a.isDeleted = false")
     Optional<Integer> findAssignCountByTaskId(@Param("taskId") Long taskId);
 
-    @Query("select t from Assignment a join fetch a.user u join fetch a.task t " +
+    @Query("select a from Assignment a join fetch a.task t " +
             "where a.isDeleted = false " +
-            "and u.id = :userId")
-    Optional<List<Task>> findAssignTaskByUserId(@Param("userId") Long userId);
+            "and a.user.id = :userId")
+    Optional<List<Assignment>> findAssignTaskByUserId(@Param("userId") Long userId);
 }
