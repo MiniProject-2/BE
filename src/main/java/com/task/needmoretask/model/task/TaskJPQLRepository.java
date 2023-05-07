@@ -129,7 +129,8 @@ public class TaskJPQLRepository {
                         "from Task t " +
                         "where t.isDeleted = false " +
                         "and (t.startAt <= :date " +
-                        "and t.endAt >= :date)"
+                        "and t.endAt >= :date) " +
+                                        "order by t.title desc"
                 , Task.class)
                         .setParameter("date", date);
 
