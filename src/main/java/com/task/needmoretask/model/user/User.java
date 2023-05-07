@@ -16,9 +16,9 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, length = 50)
     private String email;
-    @Column(nullable = false)
+    @Column(nullable = false, length = 60)
     private String password;
     @Column(nullable = false)
     private String phone;
@@ -34,6 +34,7 @@ public class User {
     private Role role;
     @Column(nullable = false)
     private boolean isDeleted;
+
 
     public enum Department {
         DEVELOPMENT,
@@ -67,7 +68,19 @@ public class User {
         this.isDeleted = false;
     }
 
-    public void pwdUpdate(String password){
+    public User(UserRequest.JoinIn joinIn, Profile profile, String password) {
+        this.email = joinIn.getEmail();
+        this.password = joinIn.getPassword();
+        this.phone = joinIn.getPhone();
+        this.fullname = joinIn.getFullName();
+        this.department = joinIn.getDepartment();
+        this.joinCompanyYear = joinIn.getJoinCompanyYear();
+        this.profile = profile;
+        this.role = Role.USER;
+        this.isDeleted = false;
+    }
+
+    public void pwdUpdate(String password) {
         this.password = password;
     }
 
@@ -79,7 +92,7 @@ public class User {
         this.profile = profile;
     }
 
-    public void update(UserRequest.UserIn userIn){
+    public void update(UserRequest.UserIn userIn) {
         this.phone = userIn.getPhone();
         this.fullname = userIn.getFullName();
         this.department = userIn.getDepartment();
@@ -101,4 +114,5 @@ public class User {
     public void checkEmailDuplicate(String email) {
         // TODO
     }
+
 }
