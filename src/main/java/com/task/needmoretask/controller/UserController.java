@@ -72,4 +72,11 @@ public class UserController {
         UserResponse.UserOut user = userService.updateUserInfo(id,userIn,myUserDetails.getUser());
         return ResponseEntity.ok().body(new ResponseDTO<>(user));
     }
+
+    //정보 요청
+    @GetMapping("/auth/me")
+    public ResponseEntity<?> getAuth(@AuthenticationPrincipal MyUserDetails myUserDetails){
+        UserResponse.UserOut user = userService.getAuth(myUserDetails.getUser());
+        return ResponseEntity.ok().body(new ResponseDTO<>(user));
+    }
 }

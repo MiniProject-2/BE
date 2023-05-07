@@ -119,6 +119,14 @@ public class UserService {
         return new UserResponse.UserOut(findUser);
     }
 
+    //정보 요청
+    public UserResponse.UserOut getAuth(User user){
+        User findUser = userRepository.findById(user.getId()).orElseThrow(
+                () -> new Exception401("잘못된 접근입니다")
+        );
+        return new UserResponse.UserOut(findUser);
+    }
+
     private User notFoundUser(Long userId) {
         return userRepository.findById(userId).orElseThrow(
                 () -> new Exception404("해당 유저가 없습니다")

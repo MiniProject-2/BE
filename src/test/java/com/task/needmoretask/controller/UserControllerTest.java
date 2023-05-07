@@ -304,4 +304,36 @@ class UserControllerTest {
             Assertions.assertEquals(joinCompanyYear,data.get("joinCompanyYear").asInt());
         }
     }
+
+    @Nested
+    @DisplayName("Auth 정보요청")
+    class GetAuth{
+
+        @Test
+        @DirtiesContext
+        @DisplayName("성공")
+        void getAuth() throws JsonProcessingException {
+            //given
+            User user = userRepository.findById(userId1).orElse(null);
+            HttpHeaders headers = headers(user);
+            HttpEntity<?> requestEntity = new HttpEntity<>(headers);
+
+            //when
+            ResponseEntity<?> response = testRestTemplate
+                    .exchange(
+                            "/api/auth/me",
+                            HttpMethod.GET,
+                            requestEntity,
+                            ResponseDTO.class
+                    );
+
+            //then
+            Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+            ObjectMapper om = new ObjectMapper();
+            JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
+            Assertions.assertEquals("성공", jsonNode.get("msg").asText());
+            JsonNode data = jsonNode.get("data");
+            Assertions.assertEquals(userId1,data.get("userId").asLong());
+        }
+    }
 }
