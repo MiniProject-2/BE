@@ -68,7 +68,7 @@ public class UserController {
 
     //개인정보 수정
     @PutMapping("/user/{id}")
-    public ResponseEntity<?> updateUserInfo(@PathVariable Long id, @RequestBody @Valid UserRequest.UserIn userIn, @AuthenticationPrincipal MyUserDetails myUserDetails){
+    public ResponseEntity<?> updateUserInfo(@PathVariable Long id, @RequestBody @Valid UserRequest.UserIn userIn, Errors errors, @AuthenticationPrincipal MyUserDetails myUserDetails){
         UserResponse.UserOut user = userService.updateUserInfo(id,userIn,myUserDetails.getUser());
         return ResponseEntity.ok().body(new ResponseDTO<>(user));
     }
