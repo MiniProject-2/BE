@@ -95,7 +95,17 @@ class TaskControllerTest {
                 .profile(profile)
                 .role(User.Role.USER)
                 .build();
-        List<User> users = List.of(user1,user2);
+        User user3 = User.builder()
+                .email("user3@email.com")
+                .password("1234")
+                .phone("010-0000-0000")
+                .fullname("user3")
+                .department(User.Department.DEVELOPMENT)
+                .joinCompanyYear(2024)
+                .profile(profile)
+                .role(User.Role.ADMIN)
+                .build();
+        List<User> users = List.of(user1,user2,user3);
         userRepository.saveAll(users);
         userId1 = user1.getId();
         userId2 = user2.getId();
@@ -452,6 +462,40 @@ class TaskControllerTest {
         JsonNode data = jsonNode.get("data");
 
         Assertions.assertEquals(0, data.size());
+
+        System.out.println(data.toString());
+    }
+
+    @Test
+    @DisplayName("Admin Overview")
+    @DirtiesContext
+    void getPickedTasks() throws JsonProcessingException {
+        String url = "/api/admin/tasks";
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url)
+                .queryParam("startat", "2023-01-07")
+                .queryParam("endat", "2023-04-07");
+
+        Long userid = 3L;
+        User user = userRepository.findById(userid).orElse(null);
+        HttpHeaders headers = headers(user);
+        HttpEntity<?> requestEntity = new HttpEntity<>(headers);
+
+        //when
+        ResponseEntity<?> response = testRestTemplate
+                .exchange(
+                        builder.toUriString(),
+                        HttpMethod.GET,
+                        requestEntity,
+                        ResponseDTO.class
+                );
+
+        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+        ObjectMapper om = new ObjectMapper();
+        JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
+        Assertions.assertEquals("성공", jsonNode.get("msg").asText());
+        JsonNode data = jsonNode.get("data");
+
+        Assertions.assertEquals(2, data.size());
 
         System.out.println(data.toString());
     }
