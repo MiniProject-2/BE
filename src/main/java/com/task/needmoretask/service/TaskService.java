@@ -291,9 +291,7 @@ public class TaskService {
     }
 
     public List<TaskResponse.DailyTasksOutDTO> getDailyTasks(LocalDate date) {
-        List<Task> tasksPS;
-        tasksPS = taskJPQLRepository.findTasksByDaliyDate(date);
-
+        List<Task> tasksPS = taskJPQLRepository.findTasksByDaliyDate(date);
 
         List<TaskResponse.DailyTasksOutDTO> responseList = new ArrayList<>();
 
@@ -309,6 +307,29 @@ public class TaskService {
         }
 
         return responseList;
+    }
+
+    public List<TaskResponse.DailyTasksOutDTO> getPickedTasks(LocalDate startDate, LocalDate endDate, User loginUser){
+        if(!loginUser.getRole().equals(User.Role.ADMIN))
+            throw new Exception403("권한이 없습니다");
+
+        List<Task> tasksPS = taskJPQLRepository.findTasksByBetweenDate(startDate, endDate);
+
+        List<TaskResponse.DailyTasksOutDTO> responseList = new ArrayList<>();
+
+        for (Task task : tasksPS) {
+            List<Assignment> assigneesPS;
+            assigneesPS = assignRepository.findAssigneeByTaskId(task.getId()).orElse(Collections.emptyList());
+
+            TaskResponse.DailyTasksOutDTO dailyTasksOutDTO = new TaskResponse.DailyTasksOutDTO(
+                    task, assigneesPS
+            );
+
+            responseList.add(dailyTasksOutDTO);
+        }
+
+        return responseList;
+
     }
 
     private Task notFoundTask(Long taskId) {
