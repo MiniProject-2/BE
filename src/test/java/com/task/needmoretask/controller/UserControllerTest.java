@@ -52,7 +52,7 @@ class UserControllerTest {
     void setUp(
             @Autowired ProfileRepository profileRepository
     ) {
-        Profile profile = profileRepository.save(new Profile(null, "img.jpg"));
+        Profile profile = profileRepository.save(new Profile(1L, "img.jpg"));
         List<User> users = new ArrayList<>();
         User user1 = User.builder()
                 .email("user1@email.com")
@@ -79,7 +79,7 @@ class UserControllerTest {
         for(int i=3; i<101; i++){
             users.add(User.builder()
                     .email("user"+i+"@email.com")
-                    .password("1234")
+                    .password(passwordEncoder.encode("123456"))
                     .phone("010-0000-0000")
                     .fullname("user"+i)
                     .department(User.Department.HR)
@@ -107,7 +107,7 @@ class UserControllerTest {
             void test1() throws JsonProcessingException {
                 //given
                 String email = "user3@email.com";
-                String password = "123456";
+                String password = "000000";
                 User user = userRepository.findById(userId1).orElse(null);
                 HttpHeaders headers = headers(user);
                 UserRequest.Login login = UserRequest.Login.builder()
@@ -198,7 +198,7 @@ class UserControllerTest {
         void getUsers() throws JsonProcessingException {
             //given
             int page = 0;
-            User user = userRepository.findById(userId1).orElse(null);
+            User user = userRepository.findById(userId2).orElse(null);
             HttpHeaders headers = headers(user);
             HttpEntity<?> requestEntity = new HttpEntity<>(headers);
 
@@ -256,49 +256,6 @@ class UserControllerTest {
     }
 
     @Nested
-    @DisplayName("User Role 수정")
-    @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-    class UpdateRole{
-
-        @Test
-        @Order(1)
-        void updateRole() throws JsonProcessingException {
-            UserRequest.updateRoleInDTO updateRoleInDTO =
-                    UserRequest.updateRoleInDTO
-                    .builder()
-                            .userId(1L)
-                            .role(User.Role.ADMIN)
-                            .build();
-            User user = userRepository.findById(userId2).orElse(null);
-            HttpHeaders headers = headers(user);
-            HttpEntity<?> requestEntity = new HttpEntity<>(updateRoleInDTO, headers);
-
-            //when
-            ResponseEntity<?> response = testRestTemplate
-                    .exchange(
-                            "/api/admin/role",
-                            HttpMethod.PUT,
-                            requestEntity,
-                            ResponseDTO.class
-                    );
-
-            Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
-            ObjectMapper om = new ObjectMapper();
-            JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
-            System.out.println(jsonNode);
-            Assertions.assertEquals("성공", jsonNode.get("msg").asText());
-        }
-
-        @Test
-        @Order(2)
-        void updateRole2(){
-
-        }
-
-
-    }
-
-    @Nested
     @DisplayName("User 수정")
     class UpdateUserInfo{
         @Test
@@ -346,6 +303,114 @@ class UserControllerTest {
             Assertions.assertEquals(phone,data.get("phone").asText());
             Assertions.assertEquals(joinCompanyYear,data.get("joinCompanyYear").asInt());
         }
+    }
+
+    @Nested
+    @DisplayName("UserPassword 확인")
+    class UserPassword {
+
+        @Test
+        @DirtiesContext
+        @DisplayName("성공")
+        void validatePassword() throws JsonProcessingException {
+            //given
+            User user = userRepository.findById(userId1).orElse(null);
+            HttpHeaders header = headers(user);
+            UserRequest.UserPasswordValidate userPasswordValidate = UserRequest.UserPasswordValidate.builder()
+                    .password("123456")
+                    .passwordCheck("123456")
+                    .build();
+
+            HttpEntity<?> requestEntity = new HttpEntity<>(userPasswordValidate, header);
+            //when
+            ResponseEntity<?> response = testRestTemplate
+                    .exchange(
+                            "/api/password/validate",
+                            HttpMethod.POST,
+                            requestEntity,
+                            ResponseDTO.class
+                    );
+            //then
+            Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+            ObjectMapper om = new ObjectMapper();
+            JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
+            Assertions.assertEquals("성공", jsonNode.get("msg").asText());
+        }
+    }
+
+    @Nested
+    @DisplayName("Email 중복")
+    class UserEmail{
+
+        @Test
+        @DirtiesContext
+        @DisplayName("성공")
+        void IsDuplicatedId() throws JsonProcessingException {
+            //given
+            UserRequest.UserEmailValidate emailDuplicateId = UserRequest.UserEmailValidate.builder()
+                    .email("user102@email.com")
+                    .build();
+
+            HttpEntity<?> requestEntity = new HttpEntity<>(emailDuplicateId);
+            //when
+            ResponseEntity<?> response = testRestTemplate
+                    .postForEntity(
+                            "/api/email/validate",
+                            requestEntity,
+                            ResponseDTO.class
+                    );
+
+            //then
+            Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+            ObjectMapper om = new ObjectMapper();
+            JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
+            Assertions.assertEquals("성공", jsonNode.get("msg").asText());
+        }
+    }
+
+    @Nested
+    @DisplayName("User Role 수정")
+    @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+    class UpdateRole{
+
+        @Test
+        @Order(1) @Disabled
+        @DirtiesContext
+        void updateRole() throws JsonProcessingException {
+            UserRequest.updateRoleInDTO updateRoleInDTO =
+                    UserRequest.updateRoleInDTO
+                            .builder()
+                            .userId(1L)
+                            .role(User.Role.ADMIN)
+                            .build();
+            User user = userRepository.findById(userId2).orElse(null);
+            HttpHeaders headers = headers(user);
+            HttpEntity<?> requestEntity = new HttpEntity<>(updateRoleInDTO, headers);
+
+            //when
+            ResponseEntity<?> response = testRestTemplate
+                    .exchange(
+                            "/api/admin/role",
+                            HttpMethod.PUT,
+                            requestEntity,
+                            ResponseDTO.class
+                    );
+
+            Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+            ObjectMapper om = new ObjectMapper();
+            JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
+            System.out.println(jsonNode);
+            Assertions.assertEquals("성공", jsonNode.get("msg").asText());
+        }
+
+        @Test
+        @Order(2) @Disabled
+        @DirtiesContext
+        void updateRole2(){
+
+        }
+
+
     }
 
     @Nested

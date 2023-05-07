@@ -24,8 +24,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.validation.Valid;
 import java.io.IOException;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -109,6 +111,7 @@ public class UserService {
         User findUser = notFoundUser(id);
         forbiddenUser(findUser, user);
         if (!userIn.getPassword().isEmpty()){
+            if(!Pattern.matches("^[a-zA-Z0-9.-]{6,16}$",userIn.getPassword()) && !Pattern.matches("^[a-zA-Z0-9.-]{6,16}$",userIn.getPasswordCheck())) throw new Exception400("password","비밀번호 형식이 잘못 되었습니다");
             passwordCheck(userIn.getPassword(), userIn.getPasswordCheck());
             findUser.pwdUpdate(passwordEncoder.encode(userIn.getPassword()));
         }
@@ -117,6 +120,19 @@ public class UserService {
             findUser.update(userIn, profile);
         }else findUser.update(userIn);
         return new UserResponse.UserOut(findUser);
+    }
+
+    //비밀번호 확인
+    public void validatePassword(UserRequest.@Valid UserPasswordValidate userPasswordDTO, User user){
+        User findUser = notFoundUser(user.getId());
+        passwordCheck(userPasswordDTO.getPassword(), userPasswordDTO.getPasswordCheck());
+        // match 원본 비번가 암호된 비번이 같은건지 비교가능하게 해주는 메서드
+        validatePassword(userPasswordDTO.getPassword(),findUser);
+    }
+
+    //이메일 중복 확인
+    public void isDuplicatedId(UserRequest.UserEmailValidate emailCheck){
+        userRepository.findUserByEmail(emailCheck.getEmail()).ifPresent(u -> {throw new Exception400("email","이미 존재하는 이메일입니다");});
     }
 
     //정보 요청

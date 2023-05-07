@@ -4,6 +4,7 @@ import com.task.needmoretask.model.user.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
@@ -55,13 +56,25 @@ public class UserRequest {
     @Builder
     public static class UserPasswordValidate{
         @NotBlank
+        @Pattern(regexp = "^[a-zA-Z0-9.-]{6,16}$")
         private String password;
         @NotBlank
+        @Pattern(regexp = "^[a-zA-Z0-9.-]{6,16}$")
         private String passwordCheck;
 
         public UserPasswordValidate(String password, String passwordCheck) {
             this.password = password;
             this.passwordCheck = passwordCheck;
         }
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UserEmailValidate{
+        @NotBlank
+        @Email
+        private String email;
     }
 }

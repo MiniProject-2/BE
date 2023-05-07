@@ -23,7 +23,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @Slf4j
 @Configuration
 @RequiredArgsConstructor
-public class MySecurityConfig {
+public class MySecurityConfig{
 
     @Bean
     BCryptPasswordEncoder passwordEncoder(){
@@ -90,7 +90,7 @@ public class MySecurityConfig {
 
         // 11. 인증, 권한 필터 설정
         http.authorizeRequests(
-                authorize -> authorize.antMatchers("/api/login","/api/join","/h2-console/**").permitAll()
+                authorize -> authorize.antMatchers("/api/login","/api/join","/api/email/validate","/h2-console/**").permitAll()
                         .antMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest()
                         .authenticated()

@@ -73,11 +73,18 @@ public class UserController {
         return ResponseEntity.ok().body(new ResponseDTO<>(user));
     }
 
-    //정보 요청
-    @GetMapping("/auth/me")
-    public ResponseEntity<?> getAuth(@AuthenticationPrincipal MyUserDetails myUserDetails) {
-        UserResponse.UserOut user = userService.getAuth(myUserDetails.getUser());
-        return ResponseEntity.ok().body(new ResponseDTO<>(user));
+    //비밀번호 확인
+    @PostMapping("/password/validate")
+    public ResponseEntity<?> validatePassword(@RequestBody @Valid UserRequest.UserPasswordValidate userPasswordDto, Errors errors, @AuthenticationPrincipal MyUserDetails myUserDetails ){
+        userService.validatePassword(userPasswordDto,myUserDetails.getUser());
+        return  ResponseEntity.ok(new ResponseDTO<>());
+    }
+
+    //이메일 중복확인
+    @PostMapping("/email/validate")
+    public ResponseEntity<?> validateEmail(@RequestBody @Valid UserRequest.UserEmailValidate emailValidateDto, Errors errors){
+        userService.isDuplicatedId(emailValidateDto);
+        return ResponseEntity.ok(new ResponseDTO<>());
     }
 
     // 유저 role변경
@@ -90,10 +97,10 @@ public class UserController {
         return ResponseEntity.ok().body(new ResponseDTO<>());
     }
 
-    //비밀번호 확인
-    @PostMapping("/password/validate")
-    public ResponseEntity<?> validatePassword(@RequestBody @Valid UserRequest.UserPasswordValidate userPasswordDto, @AuthenticationPrincipal MyUserDetails myUserDetails ){
-        userService.validatePassword(userPasswordDto,myUserDetails);
-        return  ResponseEntity.ok(new ResponseDTO<>());
+    //정보 요청
+    @GetMapping("/auth/me")
+    public ResponseEntity<?> getAuth(@AuthenticationPrincipal MyUserDetails myUserDetails){
+        UserResponse.UserOut user = userService.getAuth(myUserDetails.getUser());
+        return ResponseEntity.ok().body(new ResponseDTO<>(user));
     }
 }
