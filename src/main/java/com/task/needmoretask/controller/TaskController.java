@@ -12,6 +12,7 @@ import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.time.LocalDate;
 import java.util.List;
 
 @RequestMapping("/api")
@@ -96,5 +97,16 @@ public class TaskController {
         calendarOutDTOList = taskService.getCalendar(year, month);
 
         return ResponseEntity.ok().body(new ResponseDTO<>(calendarOutDTOList));
+    }
+
+    // Daily Overview
+    @GetMapping("/tasks")
+    public ResponseEntity<?> getDailyTasks(
+            @RequestParam("date")LocalDate date
+            ){
+        List<TaskResponse.DailyTasksOutDTO> dailyTasksOutDTOList;
+        dailyTasksOutDTOList = taskService.getDailyTasks(date);
+
+        return ResponseEntity.ok().body(new ResponseDTO<>(dailyTasksOutDTOList));
     }
 }
