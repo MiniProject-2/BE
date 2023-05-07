@@ -1,5 +1,11 @@
 package com.task.needmoretask.core.config;
 
+import com.task.needmoretask.core.auth.jwt.MyJwtAuthorizationFilter;
+import com.task.needmoretask.core.auth.jwt.MyJwtProvider;
+import com.task.needmoretask.core.exception.Exception401;
+import com.task.needmoretask.core.exception.Exception403;
+import com.task.needmoretask.core.util.MyFilterResponseUtil;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,13 +19,10 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import com.task.needmoretask.core.auth.jwt.MyJwtAuthorizationFilter;
-import com.task.needmoretask.core.exception.Exception401;
-import com.task.needmoretask.core.exception.Exception403;
-import com.task.needmoretask.core.util.MyFilterResponseUtil;
 
 @Slf4j
 @Configuration
+@RequiredArgsConstructor
 public class MySecurityConfig {
 
     @Bean
@@ -32,12 +35,19 @@ public class MySecurityConfig {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
+    @Bean
+    JwtLogoutHandler jwtLogoutHandler(MyJwtProvider myJwtProvider){
+        return new JwtLogoutHandler(myJwtProvider);
+    }
+
+    private final MyJwtProvider myJwtProvider;
+
     // JWT 필터 등록이 필요함
     public class CustomSecurityFilterManager extends AbstractHttpConfigurer<CustomSecurityFilterManager, HttpSecurity> {
         @Override
         public void configure(HttpSecurity builder) throws Exception {
             AuthenticationManager authenticationManager = builder.getSharedObject(AuthenticationManager.class);
-            builder.addFilter(new MyJwtAuthorizationFilter(authenticationManager));
+            builder.addFilter(new MyJwtAuthorizationFilter(authenticationManager, myJwtProvider));
             // 시큐리티 관련 필터
             super.configure(builder);
         }
@@ -80,12 +90,13 @@ public class MySecurityConfig {
 
         // 11. 인증, 권한 필터 설정
         http.authorizeRequests(
-                authorize -> authorize.antMatchers("/s/**").authenticated()
-                        .antMatchers("/manager/**")
-                        .access("hasRole('ADMIN') or hasRole('MANAGER')")
-                        .antMatchers("/admin/**").hasRole("ADMIN")
-                        .anyRequest().permitAll()
-        );
+                authorize -> authorize.antMatchers("/api/login","/api/join","/h2-console/**").permitAll()
+                        .antMatchers("/api/admin/**").hasRole("ADMIN")
+                        .anyRequest()
+                        .authenticated()
+        ).logout().logoutUrl("/api/logout")
+                .logoutSuccessHandler(jwtLogoutHandler(myJwtProvider))
+                .and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
         return http.build();
     }

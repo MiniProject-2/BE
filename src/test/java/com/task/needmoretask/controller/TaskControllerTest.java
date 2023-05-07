@@ -42,8 +42,11 @@ class TaskControllerTest {
     @Autowired
     AssignRepository assignRepository;
 
+    @Autowired
+    MyJwtProvider myJwtProvider;
+
     private HttpHeaders headers(User user){
-        String jwt = MyJwtProvider.create(user);
+        String jwt = myJwtProvider.create(user);
 
         HttpHeaders requestHeaders = new HttpHeaders();
         requestHeaders.setContentType(MediaType.APPLICATION_JSON);

@@ -1,11 +1,17 @@
 package com.task.needmoretask.service;
 
+import com.task.needmoretask.core.auth.jwt.MyJwtProvider;
 import com.task.needmoretask.core.exception.Exception400;
+import com.task.needmoretask.core.exception.Exception401;
 import com.task.needmoretask.core.exception.Exception403;
 import com.task.needmoretask.core.exception.Exception404;
 import com.task.needmoretask.core.util.S3Uploader;
 import com.task.needmoretask.dto.user.UserRequest;
 import com.task.needmoretask.dto.user.UserResponse;
+import com.task.needmoretask.model.auth.Auth;
+import com.task.needmoretask.model.auth.AuthRepository;
+import com.task.needmoretask.model.log.Log;
+import com.task.needmoretask.model.log.LogRepository;
 import com.task.needmoretask.model.profile.Profile;
 import com.task.needmoretask.model.profile.ProfileRepository;
 import com.task.needmoretask.model.user.User;
@@ -29,8 +35,37 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final ProfileRepository profileRepository;
+    private final LogRepository logRepository;
+    private final AuthRepository authRepository;
     private final S3Uploader s3Uploader;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final MyJwtProvider myJwtProvider;
+
+    //로그인
+    @Transactional
+    public String login(UserRequest.Login login, String userAgent, String ipAddress){
+        User user = userRepository.findUserByEmail(login.getEmail()).orElseThrow(
+                () -> new Exception401("로그인에 실패했습니다")
+        );
+        validatePassword(login.getPassword(),user);
+
+        // 로그에 유저 데이터가 있으면 update, 없으면 save
+        logRepository.findLogByEmail(login.getEmail()).ifPresentOrElse(
+                log -> log.LastLoginDate(userAgent,ipAddress),
+                () -> logRepository.save(Log.builder()
+                        .user(user)
+                        .userAgent(userAgent)
+                        .clientIP(ipAddress)
+                        .build())
+        );
+        String accessToken = myJwtProvider.create(user);
+        Auth auth = Auth.builder()
+                .userId(user.getId())
+                .accessToken(accessToken)
+                .build();
+        authRepository.save(auth);
+        return accessToken;
+    }
 
     //프로필 업로드
     @Transactional

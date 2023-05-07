@@ -32,8 +32,12 @@ class UserControllerTest {
     UserRepository userRepository;
     @Autowired
     BCryptPasswordEncoder passwordEncoder;
+
+    @Autowired
+    MyJwtProvider myJwtProvider;
+
     private HttpHeaders headers(User user){
-        String jwt = MyJwtProvider.create(user);
+        String jwt = myJwtProvider.create(user);
 
         HttpHeaders requestHeaders = new HttpHeaders();
         requestHeaders.setContentType(MediaType.APPLICATION_JSON);
@@ -52,7 +56,7 @@ class UserControllerTest {
         List<User> users = new ArrayList<>();
         User user1 = User.builder()
                 .email("user1@email.com")
-                .password(passwordEncoder.encode("1234"))
+                .password(passwordEncoder.encode("123456"))
                 .phone("010-0000-0000")
                 .fullname("user1")
                 .department(User.Department.HR)
@@ -62,7 +66,7 @@ class UserControllerTest {
                 .build();
         User user2 = User.builder()
                 .email("user2@email.com")
-                .password("1234")
+                .password(passwordEncoder.encode("123456"))
                 .phone("010-0000-0000")
                 .fullname("user2")
                 .department(User.Department.DEVELOPMENT)
@@ -87,6 +91,102 @@ class UserControllerTest {
         userRepository.saveAll(users);
         userId1 = user1.getId();
         userId2 = user2.getId();
+    }
+
+    @Nested
+    @DisplayName("로그인")
+    class Login{
+
+        @Nested
+        @DisplayName("실패")
+        class Fail{
+
+            @Test
+            @DirtiesContext
+            @DisplayName("Email 잘못 입력")
+            void test1() throws JsonProcessingException {
+                //given
+                String email = "user3@email.com";
+                String password = "123456";
+                User user = userRepository.findById(userId1).orElse(null);
+                HttpHeaders headers = headers(user);
+                UserRequest.Login login = UserRequest.Login.builder()
+                        .email(email)
+                        .password(password)
+                        .build();
+                HttpEntity<?> requestEntity = new HttpEntity<>(login,headers);
+                //when
+                ResponseEntity<?> response = testRestTemplate
+                        .exchange(
+                                "/api/login",
+                                HttpMethod.POST,
+                                requestEntity,
+                                ResponseDTO.class
+                        );
+                //then
+                Assertions.assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+                ObjectMapper om = new ObjectMapper();
+                JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
+            }
+
+            @Test
+            @DirtiesContext
+            @DisplayName("비밀번호 잘못 입력")
+            void test12() throws JsonProcessingException {
+                //given
+                String email = "user1@email.com";
+                String password = "567890";
+                User user = userRepository.findById(userId1).orElse(null);
+                HttpHeaders headers = headers(user);
+                UserRequest.Login login = UserRequest.Login.builder()
+                        .email(email)
+                        .password(password)
+                        .build();
+                HttpEntity<?> requestEntity = new HttpEntity<>(login,headers);
+                //when
+                ResponseEntity<?> response = testRestTemplate
+                        .exchange(
+                                "/api/login",
+                                HttpMethod.POST,
+                                requestEntity,
+                                ResponseDTO.class
+                        );
+                //then
+                Assertions.assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+                ObjectMapper om = new ObjectMapper();
+                JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
+            }
+        }
+
+        @Test
+        @DirtiesContext
+        @DisplayName("성공")
+        void login() throws JsonProcessingException {
+            //given
+            String email = "user1@email.com";
+            String password = "123456";
+            User user = userRepository.findById(userId1).orElse(null);
+            HttpHeaders headers = headers(user);
+            UserRequest.Login login = UserRequest.Login.builder()
+                    .email(email)
+                    .password(password)
+                    .build();
+            HttpEntity<?> requestEntity = new HttpEntity<>(login,headers);
+            //when
+            ResponseEntity<?> response = testRestTemplate
+                    .exchange(
+                            "/api/login",
+                            HttpMethod.POST,
+                            requestEntity,
+                            ResponseDTO.class
+                    );
+            //then
+            Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+            ObjectMapper om = new ObjectMapper();
+            JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
+            Assertions.assertEquals("성공", jsonNode.get("msg").asText());
+        }
+
     }
 
     @Nested

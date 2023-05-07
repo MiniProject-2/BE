@@ -1,5 +1,6 @@
 package com.task.needmoretask.controller;
 
+import com.task.needmoretask.core.auth.jwt.MyJwtProvider;
 import com.task.needmoretask.core.auth.session.MyUserDetails;
 import com.task.needmoretask.dto.ResponseDTO;
 import com.task.needmoretask.dto.user.UserRequest;
@@ -11,9 +12,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.io.IOException;
 
@@ -23,6 +26,15 @@ import java.io.IOException;
 public class UserController {
 
     private final UserService userService;
+
+    //로그인
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody @Valid UserRequest.Login login, Errors errors, HttpServletRequest request){
+        String userAgent = request.getHeader("User-Agent");
+        String ipAddress = request.getRemoteAddr();
+        String jwt = userService.login(login,userAgent,ipAddress);
+        return ResponseEntity.ok().header(MyJwtProvider.HEADER, jwt).body(new ResponseDTO<>());
+    }
 
     //프로필 업로드
     @PostMapping(value = "/user/profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
