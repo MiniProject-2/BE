@@ -6,6 +6,7 @@ import com.task.needmoretask.dto.task.TaskRequest;
 import com.task.needmoretask.dto.task.TaskResponse;
 import com.task.needmoretask.service.TaskService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.Errors;
@@ -102,7 +103,7 @@ public class TaskController {
     // Daily Overview
     @GetMapping("/tasks")
     public ResponseEntity<?> getDailyTasks(
-            @RequestParam("date")LocalDate date
+            @RequestParam("date") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date
             ){
         List<TaskResponse.DailyTasksOutDTO> dailyTasksOutDTOList;
         dailyTasksOutDTOList = taskService.getDailyTasks(date);

@@ -111,13 +111,13 @@ public class TaskService {
     @Transactional
     public TaskResponse.Delete deleteTask(Long id, User user) {
         Task task = notFoundTask(id);
-        forbiddenTask(task,user);
+        forbiddenTask(task, user);
         List<Assignment> assignments;
         try {
             assignments = assignRepository.findAssigneeByTaskId(task.getId()).orElse(Collections.emptyList());
             assignments.forEach(Assignment::deactivateAssign);
             task.deactivateTask();
-        }catch (Exception e){
+        } catch (Exception e) {
             throw new Exception500("Task 삭제 실패: " + e.getMessage());
         }
         List<TaskResponse.Delete.AssignmentResponse> assignmentResponses = assignments.stream()
@@ -130,7 +130,7 @@ public class TaskService {
     }
 
     // Task 상세보기
-    public TaskResponse.Detail getDetailTask(Long id){
+    public TaskResponse.Detail getDetailTask(Long id) {
         Task task = notFoundTask(id);
         List<TaskResponse.Detail.AssignmentResponse> assignee = assignRepository.findAssigneeByTaskId(task.getId())
                 .map(assignments -> assignments.stream()
@@ -161,9 +161,9 @@ public class TaskService {
         }
         return responseList;
     }
-    
+
     // [Dashboard] Perfomance(최근 2주동안의) data return
-    public List<TaskResponse.PerformanceOutDTO> getPerfomance(){
+    public List<TaskResponse.PerformanceOutDTO> getPerfomance() {
         List<TaskResponse.PerformanceOutDTO> performanceOutDTOList = new ArrayList<>();
 
         ZonedDateTime date = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS)
@@ -181,7 +181,7 @@ public class TaskService {
                 int assignSize = assignRepository.findAssignCountByTaskId(tasksPS.get(j).getId())
                         .orElse(0);
 
-                if(assignSize == 0)
+                if (assignSize == 0)
                     assignNullSize++;
             }
 
@@ -197,7 +197,7 @@ public class TaskService {
     }
 
     // [DashBoard] 최근 1주일간의 통계 데이터
-    public TaskResponse.ProgressOutDTO getProgress(){
+    public TaskResponse.ProgressOutDTO getProgress() {
         TaskResponse.ProgressOutDTO progressOutDTO;
 
         int doneTotalCnt = 0;
@@ -232,7 +232,7 @@ public class TaskService {
 
         }
 
-        progressOutDTO = new TaskResponse.ProgressOutDTO( progressDate,
+        progressOutDTO = new TaskResponse.ProgressOutDTO(progressDate,
                 doneTotalCnt, doneCntList,
                 inProgressTotalCnt, inProgressCntList,
                 todoTotalCnt, todoCntList
@@ -242,7 +242,7 @@ public class TaskService {
     }
 
     // [Kanban] 내가 속한 Task 가져오기
-    public List<TaskResponse.KanbanOutDTO> getKanban(Long userId){
+    public List<TaskResponse.KanbanOutDTO> getKanban(Long userId) {
         userRepository.findById(userId)
                 .orElseThrow(() -> new Exception404("유저를 찾을 수 없습니다"));
 
@@ -256,7 +256,7 @@ public class TaskService {
 
         List<TaskResponse.KanbanOutDTO> responseList = new ArrayList<>();
 
-        for(Task task : myTaskList) {
+        for (Task task : myTaskList) {
             List<Assignment> assigneesPS;
             assigneesPS = assignRepository.findAssigneeByTaskId(task.getId()).orElse(new ArrayList<>());
 
@@ -270,14 +270,14 @@ public class TaskService {
     }
 
     // [Calendar] 조회
-    public List<TaskResponse.CalendarOutDTO> getCalendar(int year, int month){
+    public List<TaskResponse.CalendarOutDTO> getCalendar(int year, int month) {
         LocalDate date = LocalDate.of(year, month, 1);
 
         List<Task> tasksPS = taskJPQLRepository.findTaskByStartEndDate(date);
 
         List<TaskResponse.CalendarOutDTO> responseList = new ArrayList<>();
 
-        for(Task task : tasksPS) {
+        for (Task task : tasksPS) {
             List<Assignment> assigneesPS;
             assigneesPS = assignRepository.findAssigneeByTaskId(task.getId()).orElse(new ArrayList<>());
 
@@ -290,14 +290,16 @@ public class TaskService {
         return responseList;
     }
 
-    public List<TaskResponse.DailyTasksOutDTO> getDailyTasks(LocalDate date){
-        List<Task> tasksPS = taskJPQLRepository.findTasksByDaliyDate(date);
+    public List<TaskResponse.DailyTasksOutDTO> getDailyTasks(LocalDate date) {
+        List<Task> tasksPS;
+        tasksPS = taskJPQLRepository.findTasksByDaliyDate(date);
+
 
         List<TaskResponse.DailyTasksOutDTO> responseList = new ArrayList<>();
 
-        for(Task task : tasksPS) {
+        for (Task task : tasksPS) {
             List<Assignment> assigneesPS;
-            assigneesPS = assignRepository.findAssigneeByTaskId(task.getId()).orElse(new ArrayList<>());
+            assigneesPS = assignRepository.findAssigneeByTaskId(task.getId()).orElse(Collections.emptyList());
 
             TaskResponse.DailyTasksOutDTO dailyTasksOutDTO = new TaskResponse.DailyTasksOutDTO(
                     task, assigneesPS
