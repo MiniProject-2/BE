@@ -89,4 +89,11 @@ public class UserController {
         userService.updateRole(myUserDetails.getUser(), updateRoleInDTO);
         return ResponseEntity.ok().body(new ResponseDTO<>());
     }
+
+    //비밀번호 확인
+    @PostMapping("/password/validate")
+    public ResponseEntity<?> validatePassword(@RequestBody @Valid UserRequest.UserPasswordValidate userPasswordDto, @AuthenticationPrincipal MyUserDetails myUserDetails ){
+        userService.validatePassword(userPasswordDto,myUserDetails);
+        return  ResponseEntity.ok(new ResponseDTO<>());
+    }
 }

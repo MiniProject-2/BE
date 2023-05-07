@@ -50,4 +50,18 @@ public class UserRequest {
         @NotNull
         User.Role role;
     }
+
+    @Getter
+    @Builder
+    public static class UserPasswordValidate{
+        @NotBlank
+        private String password;
+        @NotBlank
+        private String passwordCheck;
+
+        public UserPasswordValidate(String password, String passwordCheck) {
+            this.password = password;
+            this.passwordCheck = passwordCheck;
+        }
+    }
 }
