@@ -207,4 +207,25 @@ public class TaskRepositoryTest {
         assertThat(tasksPS.size()).isEqualTo(8);
     }
 
+    @Test
+    @DisplayName("admin OverView")
+    @DirtiesContext
+    public void findTasksByBetweenDate(){
+        LocalDate startDate = LocalDate.of(2023, 3, 5);
+        LocalDate endDate = LocalDate.of(2023, 5, 5);
+        List<Task> tasksPS = taskJPQLRepository.findTasksByBetweenDate(startDate, endDate);
+
+        for(Task t:tasksPS) {
+            System.out.println(t.getId());
+            System.out.println(t.getTitle());
+            System.out.println(t.getDescription());
+            System.out.println(t.getStartAt());
+            System.out.println(t.getEndAt());
+            System.out.println(t.getUser().getEmail());
+            System.out.println();
+        }
+        assertThat(tasksPS.size()).isEqualTo(8);
+    }
+
+
 }
