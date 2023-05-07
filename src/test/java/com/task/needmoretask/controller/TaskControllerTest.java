@@ -430,4 +430,29 @@ class TaskControllerTest {
 
         System.out.println(data.toString());
     }
+
+    @Test
+    @DisplayName("Daily Overview")
+    @DirtiesContext
+    void getDailyTasks() throws JsonProcessingException {
+        String url = "/api/tasks";
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url)
+                .queryParam("date", "2023-01-05");
+
+        ResponseEntity<ResponseDTO> response = testRestTemplate
+                .getForEntity(
+                        builder.toUriString(),
+                        ResponseDTO.class
+                );
+
+        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+        ObjectMapper om = new ObjectMapper();
+        JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
+        Assertions.assertEquals("성공", jsonNode.get("msg").asText());
+        JsonNode data = jsonNode.get("data");
+
+        Assertions.assertEquals(0, data.size());
+
+        System.out.println(data.toString());
+    }
 }
