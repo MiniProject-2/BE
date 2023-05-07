@@ -91,6 +91,8 @@ public class TaskRepositoryTest {
             taskRepository.save(task1);
         }
 
+        em.flush();
+        em.clear();
     }
 
     @Test
@@ -181,6 +183,25 @@ public class TaskRepositoryTest {
             System.out.println(t.getDescription());
             System.out.println(t.getStartAt());
             System.out.println(t.getEndAt());
+            System.out.println();
+        }
+        assertThat(tasksPS.size()).isEqualTo(8);
+    }
+
+    @Test
+    @DisplayName("Daily OverView")
+    @DirtiesContext
+    public void findTasksByDaliyDate(){
+        LocalDate date = LocalDate.of(2023, 5, 5);
+        List<Task> tasksPS = taskJPQLRepository.findTasksByDaliyDate(date);
+
+        for(Task t:tasksPS) {
+            System.out.println(t.getId());
+            System.out.println(t.getTitle());
+            System.out.println(t.getDescription());
+            System.out.println(t.getStartAt());
+            System.out.println(t.getEndAt());
+            System.out.println(t.getUser().getEmail());
             System.out.println();
         }
         assertThat(tasksPS.size()).isEqualTo(8);
