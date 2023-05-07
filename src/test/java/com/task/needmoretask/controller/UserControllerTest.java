@@ -72,7 +72,7 @@ class UserControllerTest {
                 .department(User.Department.DEVELOPMENT)
                 .joinCompanyYear(2024)
                 .profile(profile)
-                .role(User.Role.USER)
+                .role(User.Role.ADMIN)
                 .build();
         users.add(user1);
         users.add(user2);
@@ -253,6 +253,49 @@ class UserControllerTest {
             Assertions.assertEquals(2,data.get("users").size());
             Assertions.assertTrue(data.get("isLast").asBoolean());
         }
+    }
+
+    @Nested
+    @DisplayName("User Role 수정")
+    @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+    class UpdateRole{
+
+        @Test
+        @Order(1)
+        void updateRole() throws JsonProcessingException {
+            UserRequest.updateRoleInDTO updateRoleInDTO =
+                    UserRequest.updateRoleInDTO
+                    .builder()
+                            .userId(1L)
+                            .role(User.Role.ADMIN)
+                            .build();
+            User user = userRepository.findById(userId2).orElse(null);
+            HttpHeaders headers = headers(user);
+            HttpEntity<?> requestEntity = new HttpEntity<>(updateRoleInDTO, headers);
+
+            //when
+            ResponseEntity<?> response = testRestTemplate
+                    .exchange(
+                            "/api/admin/role",
+                            HttpMethod.PUT,
+                            requestEntity,
+                            ResponseDTO.class
+                    );
+
+//            Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+            ObjectMapper om = new ObjectMapper();
+            JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
+            System.out.println(jsonNode);
+//            Assertions.assertEquals("성공", jsonNode.get("msg").asText());
+        }
+
+        @Test
+        @Order(2)
+        void updateRole2(){
+
+        }
+
+
     }
 
     @Nested

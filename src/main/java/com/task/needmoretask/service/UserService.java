@@ -124,10 +124,10 @@ public class UserService {
         if(!loginUser.getRole().equals(User.Role.ADMIN))
             throw new Exception403("권한이 부족합니다");
 
-        User user = userRepository.findById(updateRoleInDTO.getUserId())
+        User userPS = userRepository.findById(updateRoleInDTO.getUserId())
                 .orElseThrow(()-> new Exception400("userId","잘못된 유저입니다"));
 
-        user.updateRole(updateRoleInDTO.getRole());
+        userPS.updateRole(updateRoleInDTO.getRole());
     }
 
     private User notFoundUser(Long userId) {
