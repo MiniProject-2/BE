@@ -119,6 +119,17 @@ public class UserService {
         return new UserResponse.UserOut(findUser);
     }
 
+    @Transactional
+    public void updateRole(User loginUser, UserRequest.updateRoleInDTO updateRoleInDTO){
+        if(!loginUser.getRole().equals(User.Role.ADMIN))
+            throw new Exception403("권한이 부족합니다");
+
+        User user = userRepository.findById(updateRoleInDTO.getUserId())
+                .orElseThrow(()-> new Exception400("userId","잘못된 유저입니다"));
+
+        user.updateRole(updateRoleInDTO.getRole());
+    }
+
     private User notFoundUser(Long userId) {
         return userRepository.findById(userId).orElseThrow(
                 () -> new Exception404("해당 유저가 없습니다")

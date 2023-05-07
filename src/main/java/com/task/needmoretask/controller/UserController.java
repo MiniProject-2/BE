@@ -72,4 +72,14 @@ public class UserController {
         UserResponse.UserOut user = userService.updateUserInfo(id,userIn,myUserDetails.getUser());
         return ResponseEntity.ok().body(new ResponseDTO<>(user));
     }
+
+    // 유저 role변경
+    @PutMapping("/admin/role")
+    public ResponseEntity<?> updateRole(
+            @RequestBody @Valid UserRequest.updateRoleInDTO updateRoleInDTO,
+            Errors errors,
+            @AuthenticationPrincipal MyUserDetails myUserDetails){
+        userService.updateRole(myUserDetails.getUser(), updateRoleInDTO);
+        return ResponseEntity.ok().body(new ResponseDTO<>());
+    }
 }
