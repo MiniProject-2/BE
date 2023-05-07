@@ -123,4 +123,17 @@ public class TaskJPQLRepository {
         return query.getResultList();
     }
 
+    public List<Task> findTasksByDaliyDate(LocalDate date){
+        TypedQuery<Task> query =
+                em.createQuery("select t " +
+                        "from Task t " +
+                        "where t.isDeleted = false " +
+                        "and (t.startAt <= :date " +
+                        "and t.endAt >= :date)"
+                , Task.class)
+                        .setParameter("date", date);
+
+        return query.getResultList();
+    }
+
 }

@@ -290,6 +290,25 @@ public class TaskService {
         return responseList;
     }
 
+    public List<TaskResponse.DailyTasksOutDTO> getDailyTasks(LocalDate date){
+        List<Task> tasksPS = taskJPQLRepository.findTasksByDaliyDate(date);
+
+        List<TaskResponse.DailyTasksOutDTO> responseList = new ArrayList<>();
+
+        for(Task task : tasksPS) {
+            List<Assignment> assigneesPS;
+            assigneesPS = assignRepository.findAssigneeByTaskId(task.getId()).orElse(new ArrayList<>());
+
+            TaskResponse.DailyTasksOutDTO dailyTasksOutDTO = new TaskResponse.DailyTasksOutDTO(
+                    task, assigneesPS
+            );
+
+            responseList.add(dailyTasksOutDTO);
+        }
+
+        return responseList;
+    }
+
     private Task notFoundTask(Long taskId) {
         return taskRepository.findById(taskId).orElseThrow(
                 () -> new Exception404("Task를 찾을 수 없습니다"));
