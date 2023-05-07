@@ -22,7 +22,7 @@ public class UserRequest {
         @NotBlank
         private String email;
         @NotBlank
-        @Pattern(regexp = "^[a-zA-Z.-]{6,16}$")
+        @Pattern(regexp = "^[a-zA-Z0-9.-]{6,16}$")
         private String password;
         @NotBlank
         private String passwordCheck;
@@ -30,11 +30,11 @@ public class UserRequest {
         private String phone;
         @NotBlank
         private String fullName;
-        @NotBlank
+        @NotNull
         private User.Department department;
-        @NotBlank
+        @NotNull
         private Integer joinCompanyYear;
-        @NotBlank
+        @NotNull
         private Long profileId;
 
     }

@@ -10,6 +10,7 @@ import com.task.needmoretask.model.profile.Profile;
 import com.task.needmoretask.model.profile.ProfileRepository;
 import com.task.needmoretask.model.user.User;
 import com.task.needmoretask.model.user.UserRepository;
+import com.task.needmoretask.service.UserService;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -19,6 +20,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,7 +35,8 @@ class UserControllerTest {
     UserRepository userRepository;
     @Autowired
     BCryptPasswordEncoder passwordEncoder;
-    private HttpHeaders headers(User user){
+
+    private HttpHeaders headers(User user) {
         String jwt = MyJwtProvider.create(user);
 
         HttpHeaders requestHeaders = new HttpHeaders();
@@ -42,7 +46,8 @@ class UserControllerTest {
 
         return requestHeaders;
     }
-    long userId1,userId2;
+
+    long userId1, userId2;
 
     @BeforeEach
     void setUp(
@@ -72,12 +77,12 @@ class UserControllerTest {
                 .build();
         users.add(user1);
         users.add(user2);
-        for(int i=3; i<101; i++){
+        for (int i = 3; i < 101; i++) {
             users.add(User.builder()
-                    .email("user"+i+"@email.com")
+                    .email("user" + i + "@email.com")
                     .password("1234")
                     .phone("010-0000-0000")
-                    .fullname("user"+i)
+                    .fullname("user" + i)
                     .department(User.Department.HR)
                     .joinCompanyYear(2023)
                     .profile(profile)
@@ -91,7 +96,7 @@ class UserControllerTest {
 
     @Nested
     @DisplayName("User 조회")
-    class GetUsers{
+    class GetUsers {
         @Test
         @DirtiesContext
         @DisplayName("성공")
@@ -105,7 +110,7 @@ class UserControllerTest {
             //when
             ResponseEntity<?> response = testRestTemplate
                     .exchange(
-                            "/api/admin/users?page="+page,
+                            "/api/admin/users?page=" + page,
                             HttpMethod.GET,
                             requestEntity,
                             ResponseDTO.class
@@ -117,13 +122,13 @@ class UserControllerTest {
             JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
             Assertions.assertEquals("성공", jsonNode.get("msg").asText());
             JsonNode data = jsonNode.get("data");
-            Assertions.assertEquals(10,data.get("users").size());
+            Assertions.assertEquals(10, data.get("users").size());
         }
     }
 
     @Nested
     @DisplayName("User 검색")
-    class SearchUsers{
+    class SearchUsers {
         @Test
         @DirtiesContext
         @DisplayName("성공")
@@ -138,7 +143,7 @@ class UserControllerTest {
             //when
             ResponseEntity<?> response = testRestTemplate
                     .exchange(
-                            "/api/users/search?fullName="+fullName+"&page="+page,
+                            "/api/users/search?fullName=" + fullName + "&page=" + page,
                             HttpMethod.GET,
                             requestEntity,
                             ResponseDTO.class
@@ -150,14 +155,14 @@ class UserControllerTest {
             JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
             Assertions.assertEquals("성공", jsonNode.get("msg").asText());
             JsonNode data = jsonNode.get("data");
-            Assertions.assertEquals(2,data.get("users").size());
+            Assertions.assertEquals(2, data.get("users").size());
             Assertions.assertTrue(data.get("isLast").asBoolean());
         }
     }
 
     @Nested
     @DisplayName("User 수정")
-    class UpdateUserInfo{
+    class UpdateUserInfo {
         @Test
         @DirtiesContext
         @DisplayName("성공")
@@ -184,7 +189,7 @@ class UserControllerTest {
             //when
             ResponseEntity<?> response = testRestTemplate
                     .exchange(
-                            "/api/user/"+userId1,
+                            "/api/user/" + userId1,
                             HttpMethod.PUT,
                             requestEntity,
                             ResponseDTO.class
@@ -196,12 +201,57 @@ class UserControllerTest {
             JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
             Assertions.assertEquals("성공", jsonNode.get("msg").asText());
             JsonNode data = jsonNode.get("data");
-            Assertions.assertEquals(userId1,data.get("userId").asLong());
-            Assertions.assertEquals(fullName,data.get("fullName").asText());
-            Assertions.assertEquals(department.toString(),data.get("department").asText());
-            Assertions.assertEquals(profileId,data.get("profileId").asLong());
-            Assertions.assertEquals(phone,data.get("phone").asText());
-            Assertions.assertEquals(joinCompanyYear,data.get("joinCompanyYear").asInt());
+            Assertions.assertEquals(userId1, data.get("userId").asLong());
+            Assertions.assertEquals(fullName, data.get("fullName").asText());
+            Assertions.assertEquals(department.toString(), data.get("department").asText());
+            Assertions.assertEquals(profileId, data.get("profileId").asLong());
+            Assertions.assertEquals(phone, data.get("phone").asText());
+            Assertions.assertEquals(joinCompanyYear, data.get("joinCompanyYear").asInt());
+        }
+    }
+
+    @Nested
+    @DisplayName("User 회원가입")
+    class JoinUser {
+        @Test
+        @DirtiesContext
+        @DisplayName("성공")
+        void joinUser() throws JsonProcessingException {
+            // given
+
+            // joinInDTO 받기
+            UserRequest.JoinIn joinIn = new UserRequest.JoinIn(
+                    "join01@email.com",
+                    "password12.-",
+                    "password12.-",
+                    "010-1234-5678",
+                    "join user",
+                    User.Department.EDUCATION,
+                    2023,
+                    1L
+            );
+
+            // email 유효성 검사 잘되는지
+            // profile 유효성 검사 잘되는지
+            // profile, password encode 잘 적용되어 User 객체가 생성되는지
+            // userRepository에 잘 save되고, 잘 response 하는지
+
+
+            // when
+            HttpEntity<?> requestEntity = new HttpEntity<>(joinIn);
+            ResponseEntity<?> response = testRestTemplate
+                    .exchange(
+                            "/api/join",
+                            HttpMethod.POST,
+                            requestEntity,
+                            ResponseDTO.class
+                    );
+
+            // then
+            Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+            ObjectMapper om = new ObjectMapper();
+            JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
+            System.out.println(jsonNode);
         }
     }
 }
