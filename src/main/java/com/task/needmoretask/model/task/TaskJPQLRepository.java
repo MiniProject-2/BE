@@ -137,4 +137,20 @@ public class TaskJPQLRepository {
         return query.getResultList();
     }
 
+    public List<Task> findTasksByBetweenDate(LocalDate startDate, LocalDate endDate){
+        TypedQuery<Task> query =
+                em.createQuery("select t " +
+                        "from Task t " +
+                        "where t.isDeleted = false " +
+                        "and ((t.startAt >= :startDate " +
+                        "and t.startAt <= :endDate) " +
+                        "or (t.endAt >= :startDate " +
+                        "and t.endAt <= :endDate))"
+                , Task.class)
+                        .setParameter("startDate" , startDate)
+                        .setParameter("endDate" , endDate);
+
+        return query.getResultList();
+    }
+
 }

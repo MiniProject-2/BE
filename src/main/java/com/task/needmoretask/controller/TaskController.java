@@ -110,4 +110,17 @@ public class TaskController {
 
         return ResponseEntity.ok().body(new ResponseDTO<>(dailyTasksOutDTOList));
     }
+
+    // Admin Overview
+    @GetMapping("/admin/tasks")
+    public ResponseEntity<?> getPickedTasks(
+            @RequestParam("startat") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+            @RequestParam("endat") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
+            @AuthenticationPrincipal MyUserDetails myUserDetails
+    ){
+        List<TaskResponse.DailyTasksOutDTO> adminDailyTasksOutDTOList;
+        adminDailyTasksOutDTOList = taskService.getPickedTasks(startDate, endDate, myUserDetails.getUser());
+
+        return ResponseEntity.ok().body(new ResponseDTO<>(adminDailyTasksOutDTOList));
+    }
 }
