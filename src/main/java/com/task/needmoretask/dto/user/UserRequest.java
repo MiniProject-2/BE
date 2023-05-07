@@ -41,4 +41,13 @@ public class UserRequest {
         @NotNull
         private Long profileId;
     }
+
+    @Getter @Builder
+    @AllArgsConstructor
+    public static class updateRoleInDTO{
+        @NotNull
+        Long userId;
+        @NotNull
+        User.Role role;
+    }
 }

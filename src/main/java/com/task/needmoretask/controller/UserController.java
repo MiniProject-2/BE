@@ -75,8 +75,18 @@ public class UserController {
 
     //정보 요청
     @GetMapping("/auth/me")
-    public ResponseEntity<?> getAuth(@AuthenticationPrincipal MyUserDetails myUserDetails){
+    public ResponseEntity<?> getAuth(@AuthenticationPrincipal MyUserDetails myUserDetails) {
         UserResponse.UserOut user = userService.getAuth(myUserDetails.getUser());
         return ResponseEntity.ok().body(new ResponseDTO<>(user));
+    }
+
+    // 유저 role변경
+    @PutMapping("/admin/role")
+    public ResponseEntity<?> updateRole(
+            @RequestBody @Valid UserRequest.updateRoleInDTO updateRoleInDTO,
+            Errors errors,
+            @AuthenticationPrincipal MyUserDetails myUserDetails){
+        userService.updateRole(myUserDetails.getUser(), updateRoleInDTO);
+        return ResponseEntity.ok().body(new ResponseDTO<>());
     }
 }

@@ -120,11 +120,23 @@ public class UserService {
     }
 
     //정보 요청
-    public UserResponse.UserOut getAuth(User user){
+    public UserResponse.UserOut getAuth(User user) {
         User findUser = userRepository.findById(user.getId()).orElseThrow(
                 () -> new Exception401("잘못된 접근입니다")
         );
         return new UserResponse.UserOut(findUser);
+    }
+
+    // 권한 수정
+    @Transactional
+    public void updateRole(User loginUser, UserRequest.updateRoleInDTO updateRoleInDTO) {
+        if (!loginUser.getRole().equals(User.Role.ADMIN))
+            throw new Exception403("권한이 부족합니다");
+
+        User userPS = userRepository.findById(updateRoleInDTO.getUserId())
+                .orElseThrow(() -> new Exception400("userId", "잘못된 유저입니다"));
+
+        userPS.updateRole(updateRoleInDTO.getRole());
     }
 
     private User notFoundUser(Long userId) {
