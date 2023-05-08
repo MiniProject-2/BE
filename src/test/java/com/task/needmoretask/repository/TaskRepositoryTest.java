@@ -14,18 +14,17 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.annotation.DirtiesContext;
 
 import javax.persistence.EntityManager;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Import({TaskJPQLRepository.class})
+@Import({TaskJPQLRepository.class,BCryptPasswordEncoder.class})
 @DataJpaTest
 public class TaskRepositoryTest {
 
@@ -117,7 +116,7 @@ public class TaskRepositoryTest {
     @DirtiesContext
     public void findTasksByDate(){
         List<Task> tasksPS = taskJPQLRepository.findTasksByDate(
-                ZonedDateTime.of(2023, 5, 7, 23, 59, 0, 0, ZoneId.systemDefault()));
+                ZonedDateTime.now());
 
         for(Task t:tasksPS) {
             System.out.println(t.getId());
@@ -127,6 +126,7 @@ public class TaskRepositoryTest {
             System.out.println(t.getProgress());
             System.out.println();
         }
+        System.out.println(tasksPS.size());
         assertThat(tasksPS.size()).isEqualTo(8);
     }
 
@@ -135,7 +135,7 @@ public class TaskRepositoryTest {
     @DirtiesContext
     public void findDoneCountByDate(){
         int cnt = taskJPQLRepository.findDoneCountByDate(
-                ZonedDateTime.of(2023, 5, 7, 23, 59, 0, 0, ZoneId.systemDefault()));
+                ZonedDateTime.now());
 
         assertThat(cnt).isEqualTo(8);
     }

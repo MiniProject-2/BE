@@ -1,13 +1,10 @@
 package com.task.needmoretask.repository;
 
-import com.task.needmoretask.core.exception.Exception404;
-import com.task.needmoretask.dto.task.TaskRequest;
 import com.task.needmoretask.model.assign.AssignRepository;
 import com.task.needmoretask.model.assign.Assignment;
 import com.task.needmoretask.model.profile.Profile;
 import com.task.needmoretask.model.profile.ProfileRepository;
 import com.task.needmoretask.model.task.Task;
-import com.task.needmoretask.model.task.TaskJPQLRepository;
 import com.task.needmoretask.model.task.TaskRepository;
 import com.task.needmoretask.model.user.User;
 import com.task.needmoretask.model.user.UserRepository;
@@ -16,6 +13,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.annotation.DirtiesContext;
 
 import javax.persistence.EntityManager;
@@ -25,6 +24,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Import({BCryptPasswordEncoder.class})
 @DataJpaTest
 public class AssignRepositoryTest {
 

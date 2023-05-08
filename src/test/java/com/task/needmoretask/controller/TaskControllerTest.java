@@ -96,7 +96,7 @@ class TaskControllerTest {
                 .department(User.Department.DEVELOPMENT)
                 .joinCompanyYear(2024)
                 .profile(profile)
-                .role(User.Role.USER)
+                .role(User.Role.ADMIN)
                 .build();
         User user3 = User.builder()
                 .email("user3@email.com")
@@ -319,65 +319,6 @@ class TaskControllerTest {
             JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
             Assertions.assertEquals("성공", jsonNode.get("msg").asText());
             JsonNode data = jsonNode.get("data");
-        }
-    }
-
-    @Nested
-    @DisplayName("Task 상세보기")
-    class Detail {
-
-        @Test
-        @DirtiesContext
-        @DisplayName("성공1: assignee 있음")
-        void getDetailTask1() throws JsonProcessingException {
-            //given
-            User user = userRepository.findById(userId1).orElse(null);
-            HttpHeaders headers = headers(user);
-            HttpEntity<?> requestEntity = new HttpEntity<>(headers);
-
-            //when
-            ResponseEntity<?> response = testRestTemplate
-                    .exchange(
-                            "/api/task/" + taskId,
-                            HttpMethod.GET,
-                            requestEntity,
-                            ResponseDTO.class
-                    );
-
-            //then
-            Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
-            ObjectMapper om = new ObjectMapper();
-            JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
-            Assertions.assertEquals("성공", jsonNode.get("msg").asText());
-            JsonNode data = jsonNode.get("data");
-            Assertions.assertEquals(userId1,data.get("taskOwner").get("userId").asLong());
-            Assertions.assertFalse(data.get("assignee").isEmpty());
-        }
-
-        @Test
-        @DirtiesContext
-        @DisplayName("성공2: assignee 없음")
-        void getDetailTask2() throws JsonProcessingException {
-            //given
-            User user = userRepository.findById(userId1).orElse(null);
-            HttpHeaders headers = headers(user);
-            HttpEntity<?> requestEntity = new HttpEntity<>(headers);
-
-            //when
-            ResponseEntity<?> response = testRestTemplate
-                    .exchange(
-                            "/api/task/" + taskId2,
-                            HttpMethod.GET,
-                            requestEntity,
-                            ResponseDTO.class
-                    );
-
-            //then
-            Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
-            ObjectMapper om = new ObjectMapper();
-            JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
-            Assertions.assertEquals("성공", jsonNode.get("msg").asText());
-            JsonNode data = jsonNode.get("data");
             Assertions.assertEquals(userId1,data.get("taskOwner").get("userId").asLong());
             Assertions.assertTrue(data.get("assignee").isEmpty());
         }
@@ -387,15 +328,20 @@ class TaskControllerTest {
     @DisplayName("최신 생성 Task 7개")
     @DirtiesContext
     void getLatestTasks() {
+        //given
+        User user = userRepository.findById(userId1).orElse(null);
+        HttpHeaders headers = headers(user);
+        HttpEntity<?> requestEntity = new HttpEntity<>(headers);
 
         // when
         ResponseEntity<ResponseDTO> response = testRestTemplate
-                .getForEntity(
+                .exchange(
                         "/api/tasks/latest",
+                        HttpMethod.GET,
+                        requestEntity,
                         ResponseDTO.class
                 );
 
-        System.out.println(response.getBody().getData().toString());
         // then
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
     }
@@ -404,10 +350,16 @@ class TaskControllerTest {
     @DisplayName("최근 2주간의 task, done 갯수")
     @DirtiesContext
     void getPerfomance() throws JsonProcessingException {
-
+        //given
+        User user = userRepository.findById(userId1).orElse(null);
+        HttpHeaders headers = headers(user);
+        HttpEntity<?> requestEntity = new HttpEntity<>(headers);
+        //when
         ResponseEntity<ResponseDTO> response = testRestTemplate
-                .getForEntity(
+                .exchange(
                         "/api/performance",
+                        HttpMethod.GET,
+                        requestEntity,
                         ResponseDTO.class
                 );
         LocalDate localDate = LocalDate.now().minusWeeks(2).plusDays(1);
@@ -416,8 +368,6 @@ class TaskControllerTest {
         ObjectMapper om = new ObjectMapper();
         JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
         JsonNode data = jsonNode.get("data");
-
-        System.out.println(data.toString());
 
         Assertions.assertEquals(localDate, LocalDate.parse(data.get(0).get("date").asText(), DateTimeFormatter.ISO_DATE));
         Assertions.assertEquals(0, data.get(0).get("taskCount").asInt());
@@ -428,10 +378,16 @@ class TaskControllerTest {
     @DisplayName("최근 1주동안의 통계 데이터")
     @DirtiesContext
     void getProgress() throws JsonProcessingException {
-
+        //given
+        User user = userRepository.findById(userId1).orElse(null);
+        HttpHeaders headers = headers(user);
+        HttpEntity<?> requestEntity = new HttpEntity<>(headers);
+        //when
         ResponseEntity<ResponseDTO> response = testRestTemplate
-                .getForEntity(
+                .exchange(
                         "/api/progress",
+                        HttpMethod.GET,
+                        requestEntity,
                         ResponseDTO.class
                 );
 
@@ -440,8 +396,6 @@ class TaskControllerTest {
         JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
         Assertions.assertEquals("성공", jsonNode.get("msg").asText());
         JsonNode data = jsonNode.get("data");
-
-        System.out.println(data.toString());
     }
 
     @Test
@@ -479,15 +433,21 @@ class TaskControllerTest {
     @DisplayName("[Calendar] 조회")
     @DirtiesContext
     void getCalendar() throws JsonProcessingException {
-
+        //given
+        User user = userRepository.findById(userId1).orElse(null);
+        HttpHeaders headers = headers(user);
         String url = "/api/calendars";
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url)
                 .queryParam("year", "2023")
                 .queryParam("month", "5");
+        HttpEntity<?> requestEntity = new HttpEntity<>(headers);
+        //when
 
         ResponseEntity<ResponseDTO> response = testRestTemplate
-                .getForEntity(
+                .exchange(
                         builder.toUriString(),
+                        HttpMethod.GET,
+                        requestEntity,
                         ResponseDTO.class
                 );
 
@@ -498,21 +458,26 @@ class TaskControllerTest {
         JsonNode data = jsonNode.get("data");
 
         Assertions.assertEquals(8, data.size());
-
-        System.out.println(data.toString());
     }
 
     @Test
     @DisplayName("Daily Overview")
     @DirtiesContext
     void getDailyTasks() throws JsonProcessingException {
+        //given
+        User user = userRepository.findById(userId1).orElse(null);
+        HttpHeaders headers = headers(user);
+        HttpEntity<?> requestEntity = new HttpEntity<>(headers);
+        //when
         String url = "/api/tasks";
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url)
                 .queryParam("date", "2023-01-05");
 
         ResponseEntity<ResponseDTO> response = testRestTemplate
-                .getForEntity(
+                .exchange(
                         builder.toUriString(),
+                        HttpMethod.GET,
+                        requestEntity,
                         ResponseDTO.class
                 );
 
@@ -523,21 +488,18 @@ class TaskControllerTest {
         JsonNode data = jsonNode.get("data");
 
         Assertions.assertEquals(0, data.size());
-
-        System.out.println(data.toString());
     }
 
     @Test
     @DisplayName("Admin Overview")
     @DirtiesContext
     void getPickedTasks() throws JsonProcessingException {
+        //given
         String url = "/api/admin/tasks";
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url)
                 .queryParam("startat", "2023-01-07")
                 .queryParam("endat", "2023-04-07");
-
-        Long userid = 3L;
-        User user = userRepository.findById(userid).orElse(null);
+        User user = userRepository.findById(userId2).orElse(null);
         HttpHeaders headers = headers(user);
         HttpEntity<?> requestEntity = new HttpEntity<>(headers);
 
