@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.stereotype.Component;
@@ -28,15 +27,15 @@ public class MyLogAdvice {
         log.debug("디버그 : "+method.getName()+" 성공");
     }
 
-    @Before("myErrorLog()")
-    public void errorLogAdvice(JoinPoint jp) throws Exception {
-        Object[] args = jp.getArgs();
-
-        for (Object arg : args) {
-            if(arg instanceof Exception){
-                Exception e = (Exception) arg;
-                log.error("에러 : "+e.getMessage());
-            }
-        }
-    }
+//    @Before("myErrorLog()")
+//    public void errorLogAdvice(JoinPoint jp) throws Exception {
+//        Object[] args = jp.getArgs();
+//
+//        for (Object arg : args) {
+//            if(arg instanceof Exception){
+//                Exception e = (Exception) arg;
+//                log.error("에러 : "+e.getMessage());
+//            }
+//        }
+//    }
 }

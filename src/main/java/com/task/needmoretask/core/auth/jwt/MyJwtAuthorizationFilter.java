@@ -21,8 +21,11 @@ import java.io.IOException;
 @Slf4j
 public class MyJwtAuthorizationFilter extends BasicAuthenticationFilter {
 
-    public MyJwtAuthorizationFilter(AuthenticationManager authenticationManager) {
+    private final MyJwtProvider myJwtProvider;
+
+    public MyJwtAuthorizationFilter(AuthenticationManager authenticationManager, MyJwtProvider myJwtProvider) {
         super(authenticationManager);
+        this.myJwtProvider = myJwtProvider;
     }
 
     @Override
@@ -37,11 +40,11 @@ public class MyJwtAuthorizationFilter extends BasicAuthenticationFilter {
         String jwt = prefixJwt.replace(MyJwtProvider.TOKEN_PREFIX, "");
         try {
             System.out.println("디버그 : 토큰 있음");
-            DecodedJWT decodedJWT = MyJwtProvider.verify(jwt);
+            DecodedJWT decodedJWT = myJwtProvider.verify(jwt);
             Long id = decodedJWT.getClaim("id").asLong();
             String role = decodedJWT.getClaim("role").asString();
 
-            User user = User.builder().id(id).role(role).build();
+            User user = User.builder().id(id).role(User.Role.valueOf(role)).build();
             MyUserDetails myUserDetails = new MyUserDetails(user);
             Authentication authentication =
                     new UsernamePasswordAuthenticationToken(
@@ -50,7 +53,7 @@ public class MyJwtAuthorizationFilter extends BasicAuthenticationFilter {
                             myUserDetails.getAuthorities()
                     );
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            System.out.println("디버그 : 인증 객체 만들어짐");
+            log.debug("디버그 : 인증 객체 만들어짐");
         } catch (SignatureVerificationException sve) {
             log.error("토큰 검증 실패");
         } catch (TokenExpiredException tee) {
