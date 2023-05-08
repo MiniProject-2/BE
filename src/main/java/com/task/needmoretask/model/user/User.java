@@ -1,5 +1,6 @@
 package com.task.needmoretask.model.user;
 
+import com.task.needmoretask.dto.user.UserRequest;
 import com.task.needmoretask.model.profile.Profile;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,9 +16,9 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, length = 50)
     private String email;
-    @Column(nullable = false)
+    @Column(nullable = false, length = 60)
     private String password;
     @Column(nullable = false)
     private String phone;
@@ -33,6 +34,7 @@ public class User {
     private Role role;
     @Column(nullable = false)
     private boolean isDeleted;
+
 
     public enum Department {
         DEVELOPMENT,
@@ -66,23 +68,43 @@ public class User {
         this.isDeleted = false;
     }
 
-    public void update(User user) {
-        // TODO
+    public User(UserRequest.JoinIn joinIn, Profile profile, String password) {
+        this.email = joinIn.getEmail();
+        this.password = password;
+        this.phone = joinIn.getPhone();
+        this.fullname = joinIn.getFullName();
+        this.department = joinIn.getDepartment();
+        this.joinCompanyYear = joinIn.getJoinCompanyYear();
+        this.profile = profile;
+        this.role = Role.USER;
+        this.isDeleted = false;
+    }
+
+    public void pwdUpdate(String password) {
+        this.password = password;
+    }
+
+    public void update(UserRequest.UserIn userIn, Profile profile) {
+        this.phone = userIn.getPhone();
+        this.fullname = userIn.getFullName();
+        this.department = userIn.getDepartment();
+        this.joinCompanyYear = userIn.getJoinCompanyYear();
+        this.profile = profile;
+    }
+
+    public void update(UserRequest.UserIn userIn) {
+        this.phone = userIn.getPhone();
+        this.fullname = userIn.getFullName();
+        this.department = userIn.getDepartment();
+        this.joinCompanyYear = userIn.getJoinCompanyYear();
     }
 
     public void updateRole(Role role) {
         this.role = role;
     }
 
-    public void updateProfile(Profile profile) {
-        // TODO
-    }
-
     public void deactivateAccount() {
         this.isDeleted = true;
     }
 
-    public void checkEmailDuplicate(String email) {
-        // TODO
-    }
 }

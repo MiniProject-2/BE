@@ -43,8 +43,11 @@ class TaskControllerTest {
     @Autowired
     AssignRepository assignRepository;
 
+    @Autowired
+    MyJwtProvider myJwtProvider;
+
     private HttpHeaders headers(User user){
-        String jwt = MyJwtProvider.create(user);
+        String jwt = myJwtProvider.create(user);
 
         HttpHeaders requestHeaders = new HttpHeaders();
         requestHeaders.setContentType(MediaType.APPLICATION_JSON);
@@ -316,6 +319,65 @@ class TaskControllerTest {
             JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
             Assertions.assertEquals("성공", jsonNode.get("msg").asText());
             JsonNode data = jsonNode.get("data");
+        }
+    }
+
+    @Nested
+    @DisplayName("Task 상세보기")
+    class Detail {
+
+        @Test
+        @DirtiesContext
+        @DisplayName("성공1: assignee 있음")
+        void getDetailTask1() throws JsonProcessingException {
+            //given
+            User user = userRepository.findById(userId1).orElse(null);
+            HttpHeaders headers = headers(user);
+            HttpEntity<?> requestEntity = new HttpEntity<>(headers);
+
+            //when
+            ResponseEntity<?> response = testRestTemplate
+                    .exchange(
+                            "/api/task/" + taskId,
+                            HttpMethod.GET,
+                            requestEntity,
+                            ResponseDTO.class
+                    );
+
+            //then
+            Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+            ObjectMapper om = new ObjectMapper();
+            JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
+            Assertions.assertEquals("성공", jsonNode.get("msg").asText());
+            JsonNode data = jsonNode.get("data");
+            Assertions.assertEquals(userId1,data.get("taskOwner").get("userId").asLong());
+            Assertions.assertFalse(data.get("assignee").isEmpty());
+        }
+
+        @Test
+        @DirtiesContext
+        @DisplayName("성공2: assignee 없음")
+        void getDetailTask2() throws JsonProcessingException {
+            //given
+            User user = userRepository.findById(userId1).orElse(null);
+            HttpHeaders headers = headers(user);
+            HttpEntity<?> requestEntity = new HttpEntity<>(headers);
+
+            //when
+            ResponseEntity<?> response = testRestTemplate
+                    .exchange(
+                            "/api/task/" + taskId2,
+                            HttpMethod.GET,
+                            requestEntity,
+                            ResponseDTO.class
+                    );
+
+            //then
+            Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+            ObjectMapper om = new ObjectMapper();
+            JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
+            Assertions.assertEquals("성공", jsonNode.get("msg").asText());
+            JsonNode data = jsonNode.get("data");
             Assertions.assertEquals(userId1,data.get("taskOwner").get("userId").asLong());
             Assertions.assertTrue(data.get("assignee").isEmpty());
         }
@@ -348,7 +410,6 @@ class TaskControllerTest {
                         "/api/performance",
                         ResponseDTO.class
                 );
-
         LocalDate localDate = LocalDate.now().minusWeeks(2).plusDays(1);
 
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
