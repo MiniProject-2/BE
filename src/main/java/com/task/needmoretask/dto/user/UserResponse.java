@@ -62,6 +62,7 @@ public class UserResponse {
         private String profileImageUrl;
         private String phone;
         private int joinCompanyYear;
+        private User.Role role;
 
         public UserOut(User user) {
             this.userId = user.getId();
@@ -72,6 +73,7 @@ public class UserResponse {
             this.profileImageUrl = user.getProfile().getUrl();
             this.phone = user.getPhone();
             this.joinCompanyYear = user.getJoinCompanyYear();
+            this.role = user.getRole();
         }
     }
 }

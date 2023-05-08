@@ -21,8 +21,18 @@ logging:
   level:
     '[com.task.needmoretask]': INFO # DEBUG 레벨부터 에러 확인할 수 있게 설정하기
 
-file:
-  path: ./upload/ # UPLOAD 폴더 상대경로 / AWS에 S3 사용하는게 좋음
-
 jwt:
   secret: ${JWT_SECRET}
+
+# S3
+cloud:
+  aws:
+    credentials:
+      access-key: ${S3_ACCESSKEY}
+      secret-key: ${S3_SECRETKEY}
+    region:
+      static: ${S3_REGION}
+    s3:
+      bucket: ${S3_NAME}
+    stack:
+      auto: false
