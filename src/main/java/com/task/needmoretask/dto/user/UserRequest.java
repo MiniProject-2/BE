@@ -14,6 +14,31 @@ import javax.validation.constraints.Pattern;
 @Getter
 public class UserRequest {
 
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    public static class JoinIn {
+
+        @NotBlank
+        private String email;
+        @NotBlank
+        @Pattern(regexp = "^[a-zA-Z0-9.-]{6,16}$")
+        private String password;
+        @NotBlank
+        private String passwordCheck;
+        @NotBlank
+        private String phone;
+        @NotBlank
+        private String fullName;
+        @NotNull
+        private User.Department department;
+        @NotNull
+        private Integer joinCompanyYear;
+        @NotNull
+        private Long profileId;
+
+    }
+
     @Getter @Builder
     @AllArgsConstructor
     public static class Login{

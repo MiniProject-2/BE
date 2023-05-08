@@ -43,6 +43,25 @@ public class UserService {
     private final BCryptPasswordEncoder passwordEncoder;
     private final MyJwtProvider myJwtProvider;
 
+    //회원가입
+    @Transactional
+    public void join(UserRequest.JoinIn joinIn) {
+
+        // email 중복 검사
+        if (userRepository.findUserByEmail(joinIn.getEmail()).isPresent()) {
+            throw new Exception400("email", "이미 가입한 email이 있습니다");
+        }
+
+        // profile 유효성 검사
+        Long profileId = joinIn.getProfileId();
+        Profile profile = profileRepository.findById(profileId).orElseThrow(() -> new Exception400("profile", "일치하는 profile이 없습니다"));
+
+        User user = new User(joinIn, profile, passwordEncoder.encode(joinIn.getPassword()));
+
+        userRepository.save(user);
+    }
+
+
     //로그인
     @Transactional
     public String login(UserRequest.Login login, String userAgent, String ipAddress){

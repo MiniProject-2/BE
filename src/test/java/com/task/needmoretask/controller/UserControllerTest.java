@@ -444,4 +444,50 @@ class UserControllerTest {
             Assertions.assertEquals(userId1,data.get("userId").asLong());
         }
     }
+
+
+    @Nested
+    @DisplayName("User 회원가입")
+    class JoinUser {
+        @Test
+        @DirtiesContext
+        @DisplayName("성공")
+        void joinUser() throws JsonProcessingException {
+            // given
+
+            // joinInDTO 받기
+            UserRequest.JoinIn joinIn = new UserRequest.JoinIn(
+                    "join01@email.com",
+                    "password12.-",
+                    "password12.-",
+                    "010-1234-5678",
+                    "join user",
+                    User.Department.EDUCATION,
+                    2023,
+                    1L
+            );
+
+            // email 유효성 검사 잘되는지
+            // profile 유효성 검사 잘되는지
+            // profile, password encode 잘 적용되어 User 객체가 생성되는지
+            // userRepository에 잘 save되고, 잘 response 하는지
+
+
+            // when
+            HttpEntity<?> requestEntity = new HttpEntity<>(joinIn);
+            ResponseEntity<?> response = testRestTemplate
+                    .exchange(
+                            "/api/join",
+                            HttpMethod.POST,
+                            requestEntity,
+                            ResponseDTO.class
+                    );
+
+            // then
+            Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+            ObjectMapper om = new ObjectMapper();
+            JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
+            System.out.println(jsonNode);
+        }
+    }
 }

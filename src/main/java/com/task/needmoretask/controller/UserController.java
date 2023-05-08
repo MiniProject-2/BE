@@ -27,6 +27,13 @@ public class UserController {
 
     private final UserService userService;
 
+    //회원가입
+    @PostMapping("/join")
+    public ResponseEntity<?> join(@RequestBody @Valid UserRequest.JoinIn joinIn, Errors errors) {
+        userService.join(joinIn);
+        return ResponseEntity.ok().body(new ResponseDTO<>());
+    }
+
     //로그인
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody @Valid UserRequest.Login login, Errors errors, HttpServletRequest request){
@@ -45,24 +52,24 @@ public class UserController {
 
     //유져 조회
     @GetMapping("/admin/users")
-    public ResponseEntity<?> getUsers(@RequestParam("page") int page){
-        Pageable pageable = PageRequest.of(page,10);
+    public ResponseEntity<?> getUsers(@RequestParam("page") int page) {
+        Pageable pageable = PageRequest.of(page, 10);
         UserResponse.UsersOut users = userService.getUsers(pageable);
         return ResponseEntity.ok().body(new ResponseDTO<>(users));
     }
 
     //유저 검색
     @GetMapping("/users/search")
-    public ResponseEntity<?> searchUsers(@RequestParam("fullName") String fullName, @RequestParam("page") int page){
-        Pageable pageable = PageRequest.of(page,10);
-        UserResponse.UsersOut users = userService.searchUsers(fullName,pageable);
+    public ResponseEntity<?> searchUsers(@RequestParam("fullName") String fullName, @RequestParam("page") int page) {
+        Pageable pageable = PageRequest.of(page, 10);
+        UserResponse.UsersOut users = userService.searchUsers(fullName, pageable);
         return ResponseEntity.ok().body(new ResponseDTO<>(users));
     }
 
     //개인정보 조회
     @GetMapping("/user/{id}")
-    public ResponseEntity<?> getUserInfo(@PathVariable Long id, @AuthenticationPrincipal MyUserDetails myUserDetails){
-        UserResponse.UserOut user = userService.getUserInfo(id,myUserDetails.getUser());
+    public ResponseEntity<?> getUserInfo(@PathVariable Long id, @AuthenticationPrincipal MyUserDetails myUserDetails) {
+        UserResponse.UserOut user = userService.getUserInfo(id, myUserDetails.getUser());
         return ResponseEntity.ok().body(new ResponseDTO<>(user));
     }
 
