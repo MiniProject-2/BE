@@ -1,7 +1,7 @@
 package com.task.needmoretask.service;
 
 
-import com.task.needmoretask.core.exception.Exception401;
+import com.task.needmoretask.core.exception.Exception403;
 import com.task.needmoretask.core.exception.Exception404;
 import com.task.needmoretask.core.exception.Exception500;
 import com.task.needmoretask.dto.task.TaskRequest;
@@ -17,10 +17,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -66,7 +68,7 @@ public class TaskService {
     public TaskResponse.Test updateTask(Long id, TaskRequest request, User user) {
         List<Assignment> newAssigns = new ArrayList<>();
         Task task = notFoundTask(id);
-        unAuthorizedTask(task, user);
+        forbiddenTask(task, user);
         task.update(request);
         /*
          * Assignee가 있는지 없는지 있다가 없앴는지 없다가 만들었는지 알 수 없기 때문에
@@ -109,13 +111,13 @@ public class TaskService {
     @Transactional
     public TaskResponse.Delete deleteTask(Long id, User user) {
         Task task = notFoundTask(id);
-        unAuthorizedTask(task,user);
+        forbiddenTask(task, user);
         List<Assignment> assignments;
         try {
             assignments = assignRepository.findAssigneeByTaskId(task.getId()).orElse(Collections.emptyList());
             assignments.forEach(Assignment::deactivateAssign);
             task.deactivateTask();
-        }catch (Exception e){
+        } catch (Exception e) {
             throw new Exception500("Task 삭제 실패: " + e.getMessage());
         }
         List<TaskResponse.Delete.AssignmentResponse> assignmentResponses = assignments.stream()
@@ -128,7 +130,7 @@ public class TaskService {
     }
 
     // Task 상세보기
-    public TaskResponse.Detail getDetailTask(Long id){
+    public TaskResponse.Detail getDetailTask(Long id) {
         Task task = notFoundTask(id);
         List<TaskResponse.Detail.AssignmentResponse> assignee = assignRepository.findAssigneeByTaskId(task.getId())
                 .map(assignments -> assignments.stream()
@@ -148,8 +150,8 @@ public class TaskService {
         List<TaskResponse.LatestTaskOutDTO> responseList = new ArrayList<>();
         List<Task> tasksPS = taskJPQLRepository.findLatestTasks();
 
-        List<Assignment> assigneesPS;
         for (int i = 0; i < tasksPS.size(); i++) {
+            List<Assignment> assigneesPS;
             assigneesPS = assignRepository.findAssigneeByTaskId(tasksPS.get(i).getId()).orElse(new ArrayList<>());
 
             TaskResponse.LatestTaskOutDTO latestTaskOutDTO = new TaskResponse.LatestTaskOutDTO(
@@ -159,9 +161,9 @@ public class TaskService {
         }
         return responseList;
     }
-    
+
     // [Dashboard] Perfomance(최근 2주동안의) data return
-    public List<TaskResponse.PerformanceOutDTO> getPerfomance(){
+    public List<TaskResponse.PerformanceOutDTO> getPerfomance() {
         List<TaskResponse.PerformanceOutDTO> performanceOutDTOList = new ArrayList<>();
 
         ZonedDateTime date = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS)
@@ -179,7 +181,7 @@ public class TaskService {
                 int assignSize = assignRepository.findAssignCountByTaskId(tasksPS.get(j).getId())
                         .orElse(0);
 
-                if(assignSize == 0)
+                if (assignSize == 0)
                     assignNullSize++;
             }
 
@@ -194,14 +196,150 @@ public class TaskService {
         return performanceOutDTOList;
     }
 
+    // [DashBoard] 최근 1주일간의 통계 데이터
+    public TaskResponse.ProgressOutDTO getProgress() {
+        TaskResponse.ProgressOutDTO progressOutDTO;
+
+        int doneTotalCnt = 0;
+        int inProgressTotalCnt = 0;
+        int todoTotalCnt = 0;
+
+        int days = 7;
+        LocalDate[] progressDate = new LocalDate[days];
+
+        int[] doneCntList = new int[days];
+        int[] inProgressCntList = new int[days];
+        int[] todoCntList = new int[days];
+
+        ZonedDateTime date = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS)
+                .plusDays(1).minusNanos(1).minusWeeks(1);
+
+        for (int i = 0; i < days; i++) {
+            date = date.plusDays(1);
+
+            int doneDateCnt = taskJPQLRepository.findCountByProgressTime(Task.Progress.DONE, date);
+            int inProgressDateCnt = taskJPQLRepository.findCountByProgressTime(Task.Progress.IN_PROGRESS, date);
+            int todoDateCnt = taskJPQLRepository.findCountByProgressTime(Task.Progress.TODO, date);
+
+            doneTotalCnt += doneDateCnt;
+            inProgressTotalCnt += inProgressDateCnt;
+            todoTotalCnt += todoDateCnt;
+
+            progressDate[i] = date.toLocalDate();
+            doneCntList[i] = doneDateCnt;
+            inProgressCntList[i] = inProgressDateCnt;
+            todoCntList[i] = todoDateCnt;
+
+        }
+
+        progressOutDTO = new TaskResponse.ProgressOutDTO(progressDate,
+                doneTotalCnt, doneCntList,
+                inProgressTotalCnt, inProgressCntList,
+                todoTotalCnt, todoCntList
+        );
+
+        return progressOutDTO;
+    }
+
+    // [Kanban] 내가 속한 Task 가져오기
+    public List<TaskResponse.KanbanOutDTO> getKanban(Long userId) {
+        userRepository.findById(userId)
+                .orElseThrow(() -> new Exception404("유저를 찾을 수 없습니다"));
+
+        List<Task> ownerTaskList = taskJPQLRepository.findTasksByUserId(userId);
+
+        List<Assignment> assignList = assignRepository.findAssignTaskByUserId(userId).orElse(new ArrayList<>());
+        List<Task> assignTaskList = assignList.stream().map(Assignment::getTask).collect(Collectors.toList());
+        HashSet<Task> myTaskList = new HashSet<>();
+        myTaskList.addAll(ownerTaskList);
+        myTaskList.addAll(assignTaskList);
+
+        List<TaskResponse.KanbanOutDTO> responseList = new ArrayList<>();
+
+        for (Task task : myTaskList) {
+            List<Assignment> assigneesPS;
+            assigneesPS = assignRepository.findAssigneeByTaskId(task.getId()).orElse(new ArrayList<>());
+
+            TaskResponse.KanbanOutDTO kanbanOutDTO = new TaskResponse.KanbanOutDTO(
+                    task, assigneesPS
+            );
+            responseList.add(kanbanOutDTO);
+        }
+
+        return responseList;
+    }
+
+    // [Calendar] 조회
+    public List<TaskResponse.CalendarOutDTO> getCalendar(int year, int month) {
+        LocalDate date = LocalDate.of(year, month, 1);
+
+        List<Task> tasksPS = taskJPQLRepository.findTaskByStartEndDate(date);
+
+        List<TaskResponse.CalendarOutDTO> responseList = new ArrayList<>();
+
+        for (Task task : tasksPS) {
+            List<Assignment> assigneesPS;
+            assigneesPS = assignRepository.findAssigneeByTaskId(task.getId()).orElse(new ArrayList<>());
+
+            TaskResponse.CalendarOutDTO calendarOutDTO = new TaskResponse.CalendarOutDTO(
+                    task, assigneesPS
+            );
+            responseList.add(calendarOutDTO);
+        }
+
+        return responseList;
+    }
+
+    public List<TaskResponse.DailyTasksOutDTO> getDailyTasks(LocalDate date) {
+        List<Task> tasksPS = taskJPQLRepository.findTasksByDaliyDate(date);
+
+        List<TaskResponse.DailyTasksOutDTO> responseList = new ArrayList<>();
+
+        for (Task task : tasksPS) {
+            List<Assignment> assigneesPS;
+            assigneesPS = assignRepository.findAssigneeByTaskId(task.getId()).orElse(Collections.emptyList());
+
+            TaskResponse.DailyTasksOutDTO dailyTasksOutDTO = new TaskResponse.DailyTasksOutDTO(
+                    task, assigneesPS
+            );
+
+            responseList.add(dailyTasksOutDTO);
+        }
+
+        return responseList;
+    }
+
+    public List<TaskResponse.DailyTasksOutDTO> getPickedTasks(LocalDate startDate, LocalDate endDate, User loginUser){
+        if(!loginUser.getRole().equals(User.Role.ADMIN))
+            throw new Exception403("권한이 없습니다");
+
+        List<Task> tasksPS = taskJPQLRepository.findTasksByBetweenDate(startDate, endDate);
+
+        List<TaskResponse.DailyTasksOutDTO> responseList = new ArrayList<>();
+
+        for (Task task : tasksPS) {
+            List<Assignment> assigneesPS;
+            assigneesPS = assignRepository.findAssigneeByTaskId(task.getId()).orElse(Collections.emptyList());
+
+            TaskResponse.DailyTasksOutDTO dailyTasksOutDTO = new TaskResponse.DailyTasksOutDTO(
+                    task, assigneesPS
+            );
+
+            responseList.add(dailyTasksOutDTO);
+        }
+
+        return responseList;
+
+    }
+
     private Task notFoundTask(Long taskId) {
         return taskRepository.findById(taskId).orElseThrow(
                 () -> new Exception404("Task를 찾을 수 없습니다"));
     }
 
     // Task에 대한 유저 권한 체크(본인 Task가 아닌 경우(어드민이 아닌 유저) 수정, 삭제 불가)
-    private void unAuthorizedTask(Task task, User loginUser) {
+    private void forbiddenTask(Task task, User loginUser) {
         if (loginUser.getRole() == User.Role.USER && !task.getUser().getId().equals(loginUser.getId()))
-            throw new Exception401("권한이 없습니다");
+            throw new Exception403("권한이 없습니다");
     }
 }

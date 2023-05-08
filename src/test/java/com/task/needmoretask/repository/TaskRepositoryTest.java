@@ -9,10 +9,12 @@ import com.task.needmoretask.model.task.TaskRepository;
 import com.task.needmoretask.model.user.User;
 import com.task.needmoretask.model.user.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.annotation.DirtiesContext;
 
 import javax.persistence.EntityManager;
 import java.time.LocalDate;
@@ -88,9 +90,14 @@ public class TaskRepositoryTest {
 
             taskRepository.save(task1);
         }
+
+//        em.flush();
+//        em.clear();
     }
 
     @Test
+    @DisplayName("최신 생성 Task 7개")
+    @DirtiesContext
     public void findLatestTasks_test(){
         List<Task> tasksPS = taskJPQLRepository.findLatestTasks();
 
@@ -106,6 +113,8 @@ public class TaskRepositoryTest {
     }
 
     @Test
+    @DisplayName("지정 날짜에 존재하는 Task")
+    @DirtiesContext
     public void findTasksByDate(){
         List<Task> tasksPS = taskJPQLRepository.findTasksByDate(
                 ZonedDateTime.of(2023, 5, 7, 23, 59, 0, 0, ZoneId.systemDefault()));
@@ -122,11 +131,101 @@ public class TaskRepositoryTest {
     }
 
     @Test
+    @DisplayName("지정 날짜에 존재하는 Done 인 Task 수")
+    @DirtiesContext
     public void findDoneCountByDate(){
         int cnt = taskJPQLRepository.findDoneCountByDate(
                 ZonedDateTime.of(2023, 5, 7, 23, 59, 0, 0, ZoneId.systemDefault()));
 
         assertThat(cnt).isEqualTo(8);
     }
+
+    @Test
+    @DisplayName("지정 날짜에 존재하는 지정 progress인 Task 수")
+    @DirtiesContext
+    public void findCountByProgressTime(){
+        int cnt = taskJPQLRepository.findCountByProgressTime(
+                Task.Progress.DONE,
+                ZonedDateTime.now()
+        );
+
+        assertThat(cnt).isEqualTo(8);
+    }
+
+    @Test
+    @DisplayName("[Kanban] 내가 Owner로 있는 task")
+    @DirtiesContext
+    public void findTasksByUserId(){
+        Long userId = 1L;
+        List<Task> tasksPS = taskJPQLRepository.findTasksByUserId(userId);
+
+        for(Task t:tasksPS) {
+            System.out.println(t.getId());
+            System.out.println(t.getTitle());
+            System.out.println(t.getDescription());
+            System.out.println(t.getUser());
+            System.out.println(t.getProgress());
+            System.out.println();
+        }
+        assertThat(tasksPS.size()).isEqualTo(8);
+    }
+
+    @Test
+    @DisplayName("[Calendar] Calendar조회")
+    @DirtiesContext
+    public void findTaskByStartEndDate(){
+        LocalDate date = LocalDate.of(2023, 5, 2);
+        List<Task> tasksPS = taskJPQLRepository.findTaskByStartEndDate(date);
+
+        for(Task t:tasksPS) {
+            System.out.println(t.getId());
+            System.out.println(t.getTitle());
+            System.out.println(t.getDescription());
+            System.out.println(t.getStartAt());
+            System.out.println(t.getEndAt());
+            System.out.println();
+        }
+        assertThat(tasksPS.size()).isEqualTo(8);
+    }
+
+    @Test
+    @DisplayName("Daily OverView")
+    @DirtiesContext
+    public void findTasksByDaliyDate(){
+        LocalDate date = LocalDate.of(2023, 5, 5);
+        List<Task> tasksPS = taskJPQLRepository.findTasksByDaliyDate(date);
+
+        for(Task t:tasksPS) {
+            System.out.println(t.getId());
+            System.out.println(t.getTitle());
+            System.out.println(t.getDescription());
+            System.out.println(t.getStartAt());
+            System.out.println(t.getEndAt());
+            System.out.println(t.getUser().getEmail());
+            System.out.println();
+        }
+        assertThat(tasksPS.size()).isEqualTo(8);
+    }
+
+    @Test
+    @DisplayName("admin OverView")
+    @DirtiesContext
+    public void findTasksByBetweenDate(){
+        LocalDate startDate = LocalDate.of(2023, 3, 5);
+        LocalDate endDate = LocalDate.of(2023, 5, 5);
+        List<Task> tasksPS = taskJPQLRepository.findTasksByBetweenDate(startDate, endDate);
+
+        for(Task t:tasksPS) {
+            System.out.println(t.getId());
+            System.out.println(t.getTitle());
+            System.out.println(t.getDescription());
+            System.out.println(t.getStartAt());
+            System.out.println(t.getEndAt());
+            System.out.println(t.getUser().getEmail());
+            System.out.println();
+        }
+        assertThat(tasksPS.size()).isEqualTo(8);
+    }
+
 
 }

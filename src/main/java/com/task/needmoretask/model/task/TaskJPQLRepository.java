@@ -5,7 +5,8 @@ import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 
@@ -37,8 +38,11 @@ public class TaskJPQLRepository {
     public List<Task> findTasksByDate(ZonedDateTime date){
         TypedQuery<Task> query =
                 em.createQuery("select t " +
-                        "from Task t " +
-                        "where t.createdAt <= :date"
+                                        "from Task t " +
+                                        "where (t.updatedAt >= :date " +
+                                        "and t.isDeleted = true) " +
+                                        "or (t.createdAt <= :date " +
+                                        "and t.isDeleted = false)"
                                 , Task.class)
                         .setParameter("date", date);
 
@@ -55,17 +59,98 @@ public class TaskJPQLRepository {
         return query.getResultList();
     }
 
-    // date 이전에 존재했던 DONE 인 Task 갯수 가져오기
+    // date 이전에 존재했던 DONE 인 Task수 select
     public int findDoneCountByDate(ZonedDateTime date){
         Long tastCnt =
                 em.createQuery("select COUNT(t) " +
-                                "from Task t " +
-                                "where t.createdAt <= :date " +
-                                "and t.progress = :done", Long.class)
+                                        "from Task t " +
+                                        "where ((t.updatedAt >= :date " +
+                                        "and t.isDeleted = true) " +
+                                        "or (t.createdAt <= :date " +
+                                        "and t.isDeleted = false))" +
+                                        "and t.progress = :done"
+                                , Long.class)
                         .setParameter("date", date)
                         .setParameter("done", Task.Progress.DONE)
                         .getSingleResult();
 
         return  tastCnt.intValue();
     }
+
+    // date날짜에 progressType된 Task수 select
+    public int findCountByProgressTime(Task.Progress progress, ZonedDateTime date){
+        Long taskDoneCnt =
+                em.createQuery("select COUNT(t) " +
+                                        "from Task t " +
+                                        "where t.progress = :progress " +
+                                        "and t.updatedAt >= :startDate " +
+                                        "and t.updatedAt < :endDate " +
+                                        "and t.isDeleted = false"
+                                , Long.class)
+                        .setParameter("progress", progress)
+                        .setParameter("startDate", date.toLocalDate().atStartOfDay(ZoneId.systemDefault()))
+                        .setParameter("endDate", date.toLocalDate().plusDays(1).atStartOfDay(ZoneId.systemDefault()))
+                        .getSingleResult();
+
+        return taskDoneCnt.intValue();
+    }
+
+    // OwnerId가 userId랑 일치하는 Task 검색
+    public List<Task> findTasksByUserId(Long userId){
+        TypedQuery<Task> query =
+                em.createQuery("select t " +
+                                "from Task t " +
+                                "where t.isDeleted = false " +
+                                "and t.user.id = :userId"
+                        ,Task.class)
+                                .setParameter("userId", userId);
+
+        return query.getResultList();
+    }
+
+    public List<Task> findTaskByStartEndDate(LocalDate date){
+        TypedQuery<Task> query =
+                em.createQuery("select t " +
+                        "from Task t " +
+                        "where t.isDeleted = false " +
+                        "and ((YEAR(t.startAt) = YEAR(:date) " +
+                                        "and MONTH(t.startAt) = MONTH(:date)) " +
+                        "or (YEAR(t.endAt) = YEAR(:date) " +
+                                        "and MONTH(t.endAt) = MONTH(:date)))"
+                , Task.class)
+                        .setParameter("date", date);
+
+        return query.getResultList();
+    }
+
+    public List<Task> findTasksByDaliyDate(LocalDate date){
+        TypedQuery<Task> query =
+                em.createQuery("select t " +
+                        "from Task t " +
+                        "where t.isDeleted = false " +
+                        "and (t.startAt <= :date " +
+                        "and t.endAt >= :date) " +
+                                        "order by t.title desc"
+                , Task.class)
+                        .setParameter("date", date);
+
+        return query.getResultList();
+    }
+
+    public List<Task> findTasksByBetweenDate(LocalDate startDate, LocalDate endDate){
+        TypedQuery<Task> query =
+                em.createQuery("select t " +
+                        "from Task t " +
+                        "where t.isDeleted = false " +
+                        "and ((t.startAt >= :startDate " +
+                        "and t.startAt <= :endDate) " +
+                        "or (t.endAt >= :startDate " +
+                        "and t.endAt <= :endDate))"
+                , Task.class)
+                        .setParameter("startDate" , startDate)
+                        .setParameter("endDate" , endDate);
+
+        return query.getResultList();
+    }
+
 }
