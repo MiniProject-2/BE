@@ -40,6 +40,8 @@ public class UserResponse {
             private String fullName;
             private User.Role role;
             private String profileImageUrl;
+            private User.Department department;
+            private Integer joinCompanyYear;
 
             public UserOut(User user) {
                 this.userId = user.getId();
@@ -47,6 +49,8 @@ public class UserResponse {
                 this.fullName = user.getFullname();
                 this.role = user.getRole();
                 this.profileImageUrl = user.getProfile().getUrl();
+                this.department = user.getDepartment();
+                this.joinCompanyYear = user.getJoinCompanyYear();
             }
         }
     }
