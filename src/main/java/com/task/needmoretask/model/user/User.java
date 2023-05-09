@@ -24,12 +24,14 @@ public class User {
     private String phone;
     @Column(nullable = false)
     private String fullname;
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Department department;
     @Column(nullable = false)
     private Integer joinCompanyYear;
     @ManyToOne(fetch = FetchType.LAZY)
     private Profile profile;
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
     @Column(nullable = false)

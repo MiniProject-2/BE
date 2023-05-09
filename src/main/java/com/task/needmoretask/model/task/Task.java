@@ -30,8 +30,10 @@ public class Task extends Timestamped {
     private LocalDate startAt;
     @Column(nullable = false)
     private LocalDate endAt;
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Progress progress;
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Priority priority;
     @Column(nullable = false)
