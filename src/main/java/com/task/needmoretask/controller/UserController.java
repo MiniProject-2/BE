@@ -69,7 +69,7 @@ public class UserController {
     //개인정보 조회
     @GetMapping("/user/{id}")
     public ResponseEntity<?> getUserInfo(@PathVariable Long id, @AuthenticationPrincipal MyUserDetails myUserDetails) {
-        UserResponse.UserOut user = userService.getUserInfo(id, myUserDetails.getUser());
+        UserResponse.UserOut user = userService.getUserInfo(id);
         return ResponseEntity.ok().body(new ResponseDTO<>(user));
     }
 

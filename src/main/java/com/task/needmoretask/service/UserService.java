@@ -118,9 +118,8 @@ public class UserService {
     }
 
     // 개인정보 조회
-    public UserResponse.UserOut getUserInfo(Long id, User user) {
+    public UserResponse.UserOut getUserInfo(Long id) {
         User findUser = notFoundUser(id);
-        forbiddenUser(findUser, user);
         return new UserResponse.UserOut(findUser);
     }
 
