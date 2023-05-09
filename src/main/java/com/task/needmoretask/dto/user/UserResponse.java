@@ -1,7 +1,5 @@
 package com.task.needmoretask.dto.user;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.task.needmoretask.model.profile.Profile;
 import com.task.needmoretask.model.user.User;
 import lombok.Getter;
@@ -23,15 +21,16 @@ public class UserResponse {
     @Getter
     public static class UsersOut{
         private List<UserOut> users;
-        @JsonProperty("isLast")
-        private boolean isLast;
+//        @JsonProperty("isLast")
+//        private boolean isLast;
+//
+//        @JsonIgnore
+//        private boolean last;
+        private int totalCount;
 
-        @JsonIgnore
-        private boolean last;
-
-        public UsersOut(List<UserOut> users, boolean isLast) {
+        public UsersOut(List<UserOut> users, int count) {
             this.users = users;
-            this.isLast = isLast;
+            this.totalCount = count;
         }
 
         @Getter
