@@ -168,11 +168,11 @@ public class TaskResponse {
         @Getter
         public class AssignmentDTO{
             private Long userId;
-            private String profile;
+            private String profileImageUrl;
 
             public AssignmentDTO(User user) {
                 this.userId = user.getId();
-                this.profile = user.getProfile().getUrl();
+                this.profileImageUrl = user.getProfile().getUrl();
             }
         }
     }
