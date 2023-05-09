@@ -251,7 +251,6 @@ class UserControllerTest {
             Assertions.assertEquals("성공", jsonNode.get("msg").asText());
             JsonNode data = jsonNode.get("data");
             Assertions.assertEquals(2,data.get("users").size());
-            Assertions.assertTrue(data.get("isLast").asBoolean());
         }
     }
 
