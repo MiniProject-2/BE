@@ -105,7 +105,7 @@ public class UserService {
         List<UserResponse.UsersOut.UserOut> userOut = users.stream()
                 .map(UserResponse.UsersOut.UserOut::new)
                 .collect(Collectors.toList());
-        return new UserResponse.UsersOut(userOut, users.isLast());
+        return new UserResponse.UsersOut(userOut, users.getTotalPages());
     }
 
     //유저 검색
@@ -114,7 +114,7 @@ public class UserService {
         List<UserResponse.UsersOut.UserOut> userOut = users.stream()
                 .map(UserResponse.UsersOut.UserOut::new)
                 .collect(Collectors.toList());
-        return new UserResponse.UsersOut(userOut, users.isLast());
+        return new UserResponse.UsersOut(userOut, users.getTotalPages());
     }
 
     // 개인정보 조회
