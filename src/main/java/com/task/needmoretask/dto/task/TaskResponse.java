@@ -126,7 +126,7 @@ public class TaskResponse {
         private LocalDate startAt;
         private LocalDate endAt;
         private String title;
-        private List<AssignmentDTO> assignees;
+        private List<AssignmentDTO> assignee;
 
         private Task.Priority priority;
         private Task.Progress progress;
@@ -146,7 +146,7 @@ public class TaskResponse {
             this.endAt = task.getEndAt();
             this.title = task.getTitle();
 
-            this.assignees = assignments.stream().map(a -> new AssignmentDTO(a.getUser())).collect(Collectors.toList());
+            this.assignee = assignments.stream().map(a -> new AssignmentDTO(a.getUser())).collect(Collectors.toList());
             this.priority = task.getPriority();
             this.progress = task.getProgress();
         }
