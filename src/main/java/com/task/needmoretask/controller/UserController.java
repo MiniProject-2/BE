@@ -52,9 +52,9 @@ public class UserController {
 
     //유져 조회
     @GetMapping("/admin/users")
-    public ResponseEntity<?> getUsers(@RequestParam("page") int page) {
+    public ResponseEntity<?> getUsers(@RequestParam("role") String role, @RequestParam("page") int page) {
         Pageable pageable = PageRequest.of(page, 10);
-        UserResponse.UsersOut users = userService.getUsers(pageable);
+        UserResponse.UsersOut users = userService.getUsers(role, pageable);
         return ResponseEntity.ok().body(new ResponseDTO<>(users));
     }
 
