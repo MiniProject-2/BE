@@ -86,7 +86,7 @@ public class TaskService {
                                 .orElseThrow(() -> new Exception404("유저를 찾을 수 없습니다"));
                         return Assignment.builder()
                                 .user(assignee)
-                                .task(request.toEntity(user))
+                                .task(task)
                                 .build();
                     })
                     .collect(Collectors.toList());

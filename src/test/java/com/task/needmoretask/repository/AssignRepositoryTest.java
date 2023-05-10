@@ -94,6 +94,7 @@ public class AssignRepositoryTest {
                     .build();
 
             assignRepository.save(assignment);
+            taskRepository.save(task1);
         }
 
     }
