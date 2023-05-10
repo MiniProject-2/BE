@@ -26,9 +26,10 @@ public class UserResponse {
 //
 //        @JsonIgnore
 //        private boolean last;
-        private int totalCount;
+      
+        private Long totalCount;
 
-        public UsersOut(List<UserOut> users, int count) {
+        public UsersOut(List<UserOut> users, Long count) {
             this.users = users;
             this.totalCount = count;
         }
