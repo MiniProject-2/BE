@@ -50,6 +50,13 @@ public class UserController {
         return ResponseEntity.ok().body(new ResponseDTO<>(url));
     }
 
+    //전체 유저 조회
+    @GetMapping("/users")
+    public ResponseEntity<?> getAllUsers(){
+        UserResponse.AllUsersOut users = userService.getAllUsers();
+        return ResponseEntity.ok().body(new ResponseDTO<>(users));
+    }
+
     //유져 조회
     @GetMapping("/admin/users")
     public ResponseEntity<?> getUsers(@RequestParam("role") String role, @RequestParam("page") int page) {

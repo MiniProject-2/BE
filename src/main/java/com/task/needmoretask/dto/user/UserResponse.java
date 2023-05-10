@@ -2,6 +2,7 @@ package com.task.needmoretask.dto.user;
 
 import com.task.needmoretask.model.profile.Profile;
 import com.task.needmoretask.model.user.User;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.util.List;
@@ -15,6 +16,24 @@ public class UserResponse {
         public ProfileOut(Profile profile) {
             this.profileId = profile.getId();
             this.profileImageUrl = profile.getUrl();
+        }
+    }
+
+    @Getter @AllArgsConstructor
+    public static class AllUsersOut{
+        private List<AllUserOut> users;
+
+        @Getter
+        public static class AllUserOut{
+            private Long userId;
+            private String fullName;
+            private String profileImageUrl;
+
+            public AllUserOut(User user) {
+                this.userId = user.getId();
+                this.fullName = user.getFullname();
+                this.profileImageUrl = user.getProfile().getUrl();
+            }
         }
     }
 
