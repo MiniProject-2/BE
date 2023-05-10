@@ -127,6 +127,7 @@ class TaskControllerTest {
                             .build();
                 })
                 .collect(Collectors.toList());
+        taskRepository.save(task);
         assignRepository.saveAll(assginees);
         taskId = task.getId();
 
@@ -156,6 +157,7 @@ class TaskControllerTest {
                     .task(task1)
                     .build();
 
+            taskRepository.save(task1);
             assignRepository.save(assignment);
         }
 
