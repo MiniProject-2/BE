@@ -18,7 +18,7 @@ public class Assignment {
     private Long id;
     @ManyToOne(fetch = FetchType.LAZY)
     private User user;
-    @ManyToOne(fetch = FetchType.LAZY,cascade = CascadeType.PERSIST)
+    @ManyToOne(fetch = FetchType.LAZY)
     private Task task;
     @Column(nullable = false)
     private boolean isDeleted;

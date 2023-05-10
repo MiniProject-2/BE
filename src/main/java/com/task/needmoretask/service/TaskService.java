@@ -14,9 +14,11 @@ import com.task.needmoretask.model.task.TaskRepository;
 import com.task.needmoretask.model.user.User;
 import com.task.needmoretask.model.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.PersistenceException;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
@@ -39,27 +41,20 @@ public class TaskService {
     // Task 생성
     @Transactional
     public void createTask(TaskRequest request, User user) {
-        if (!request.getAssignee().isEmpty()) {
-            List<Assignment> assigns = request.getAssignee().stream()
-                    .map(assigneeRequest -> {
-                        User assignee = userRepository.findById(assigneeRequest.getUserId())
-                                .orElseThrow(() -> new Exception404("유저를 찾을 수 없습니다"));
-                        return Assignment.builder()
-                                .user(assignee)
-                                .task(request.toEntity(user))
-                                .build();
-                    })
-                    .collect(Collectors.toList());
-            try {
-                assignRepository.saveAll(assigns);
-            } catch (Exception e) {
-                throw new Exception500("Task 생성 실패: " + e.getMessage());
-            }
-            return;
-        }
+        Task task = request.toEntity(user);
+        List<Assignment> assigns = request.getAssignee().stream()
+                .map(assigneeRequest -> userRepository.findById(assigneeRequest.getUserId()).orElseThrow(
+                        () -> new Exception404("유저를 찾을 수 없습니다")))
+                .distinct()
+                .map(assignee -> Assignment.builder()
+                        .user(assignee)
+                        .task(task)
+                        .build())
+                .collect(Collectors.toList());
         try {
-            taskRepository.save(request.toEntity(user));
-        } catch (Exception e) {
+            if (!assigns.isEmpty()) assignRepository.saveAll(assigns);
+            taskRepository.save(task);
+        } catch (DataIntegrityViolationException | PersistenceException e) {
             throw new Exception500("Task 생성 실패: " + e.getMessage());
         }
     }
