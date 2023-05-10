@@ -26,6 +26,7 @@ public class UserResponse {
 //
 //        @JsonIgnore
 //        private boolean last;
+      
         private Long totalCount;
 
         public UsersOut(List<UserOut> users, Long count) {
