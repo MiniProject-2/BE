@@ -205,7 +205,7 @@ class UserControllerTest {
             //when
             ResponseEntity<?> response = testRestTemplate
                     .exchange(
-                            "/api/admin/users?page="+page,
+                            "/api/admin/users?role=all&page="+page,
                             HttpMethod.GET,
                             requestEntity,
                             ResponseDTO.class

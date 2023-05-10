@@ -16,6 +16,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 
 import javax.persistence.EntityManager;
 import java.time.LocalDate;
@@ -24,6 +25,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@ActiveProfiles("dev")
 @Import({BCryptPasswordEncoder.class})
 @DataJpaTest
 public class AssignRepositoryTest {
@@ -92,6 +94,7 @@ public class AssignRepositoryTest {
                     .build();
 
             assignRepository.save(assignment);
+            taskRepository.save(task1);
         }
 
     }

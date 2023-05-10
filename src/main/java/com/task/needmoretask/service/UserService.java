@@ -100,12 +100,14 @@ public class UserService {
     }
 
     //유저 조회
-    public UserResponse.UsersOut getUsers(Pageable pageable) {
+    public UserResponse.UsersOut getUsers(String role, Pageable pageable) {
+        if(!role.equals("all") && !role.equals("admin") && !role.equals("user")) throw new Exception400("role","잘못된 요청입니다");
         Page<User> users = userRepository.findAll(pageable);
+        if(!role.equals("all")) users = userRepository.findAllByRole(User.Role.valueOf(role.toUpperCase()), pageable);
         List<UserResponse.UsersOut.UserOut> userOut = users.stream()
                 .map(UserResponse.UsersOut.UserOut::new)
                 .collect(Collectors.toList());
-        return new UserResponse.UsersOut(userOut, users.getTotalPages());
+        return new UserResponse.UsersOut(userOut, users.getTotalElements());
     }
 
     //유저 검색
@@ -114,7 +116,7 @@ public class UserService {
         List<UserResponse.UsersOut.UserOut> userOut = users.stream()
                 .map(UserResponse.UsersOut.UserOut::new)
                 .collect(Collectors.toList());
-        return new UserResponse.UsersOut(userOut, users.getTotalPages());
+        return new UserResponse.UsersOut(userOut, users.getTotalElements());
     }
 
     // 개인정보 조회
