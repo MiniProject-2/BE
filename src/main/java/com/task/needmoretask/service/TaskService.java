@@ -15,6 +15,8 @@ import com.task.needmoretask.model.user.User;
 import com.task.needmoretask.model.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -285,45 +287,47 @@ public class TaskService {
         return responseList;
     }
 
-    public List<TaskResponse.DailyTasksOutDTO> getDailyTasks(LocalDate date) {
-        List<Task> tasksPS = taskJPQLRepository.findTasksByDaliyDate(date);
+    public TaskResponse.DailyTasksOutDTO getDailyTasks(LocalDate date, Pageable pageable) {
+        Page<Task> tasksPS = taskRepository.findByDate(date, pageable);
 
-        List<TaskResponse.DailyTasksOutDTO> responseList = new ArrayList<>();
+        List<TaskResponse.DailyTasksOutDTO.DailyTasks> responseList = new ArrayList<>();
 
         for (Task task : tasksPS) {
             List<Assignment> assigneesPS;
             assigneesPS = assignRepository.findAssigneeByTaskId(task.getId()).orElse(Collections.emptyList());
 
-            TaskResponse.DailyTasksOutDTO dailyTasksOutDTO = new TaskResponse.DailyTasksOutDTO(
+            TaskResponse.DailyTasksOutDTO.DailyTasks dailyTasksOutDTO = new TaskResponse.DailyTasksOutDTO.DailyTasks(
                     task, assigneesPS
             );
 
             responseList.add(dailyTasksOutDTO);
         }
 
-        return responseList;
+        TaskResponse.DailyTasksOutDTO response = new TaskResponse.DailyTasksOutDTO(responseList, tasksPS.getTotalElements());
+
+        return response;
     }
 
-    public List<TaskResponse.DailyTasksOutDTO> getPickedTasks(LocalDate startDate, LocalDate endDate, User loginUser){
-        if(!loginUser.getRole().equals(User.Role.ADMIN))
-            throw new Exception403("권한이 없습니다");
+    public TaskResponse.DailyTasksOutDTO getPickedTasks(LocalDate startDate, LocalDate endDate, Pageable pageable){
 
-        List<Task> tasksPS = taskJPQLRepository.findTasksByBetweenDate(startDate, endDate);
+        Page<Task> tasksPS = taskRepository.findTasksByBetweenDate(startDate, endDate, pageable);
 
-        List<TaskResponse.DailyTasksOutDTO> responseList = new ArrayList<>();
+        List<TaskResponse.DailyTasksOutDTO.DailyTasks> responseList = new ArrayList<>();
 
         for (Task task : tasksPS) {
             List<Assignment> assigneesPS;
             assigneesPS = assignRepository.findAssigneeByTaskId(task.getId()).orElse(Collections.emptyList());
 
-            TaskResponse.DailyTasksOutDTO dailyTasksOutDTO = new TaskResponse.DailyTasksOutDTO(
+            TaskResponse.DailyTasksOutDTO.DailyTasks dailyTasksOutDTO = new TaskResponse.DailyTasksOutDTO.DailyTasks(
                     task, assigneesPS
             );
 
             responseList.add(dailyTasksOutDTO);
         }
 
-        return responseList;
+        TaskResponse.DailyTasksOutDTO response = new TaskResponse.DailyTasksOutDTO(responseList, tasksPS.getTotalElements());
+
+        return response;
 
     }
 

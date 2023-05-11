@@ -355,63 +355,75 @@ public class TaskResponse {
     }
 
     @Getter
-    public static class DailyTasksOutDTO{
-        private Long taskId;
+    public static class DailyTasksOutDTO {
+        private List<DailyTasks> tasks;
+        private Long totalCount;
 
-        private DailyTasksOutDTO.TaskOwner taskOwner;
-
-        private ZonedDateTime createdAt;
-        private ZonedDateTime updatedAt;
-        private LocalDate startAt;
-        private LocalDate endAt;
-        private String title;
-        private List<DailyTasksOutDTO.AssignmentDTO> assignee;
-
-        private Task.Priority priority;
-        private Task.Progress progress;
-
-        @Builder
-        public DailyTasksOutDTO(Task task, List<Assignment> assignments) {
-            this.taskId = task.getId();
-            this.taskOwner = new DailyTasksOutDTO.TaskOwner(
-                    task.getUser().getId(),
-                    task.getUser().getFullname(),
-                    task.getUser().getProfile().getUrl(),
-                    task.getUser().getDepartment());
-
-            this.createdAt = task.getCreatedAt();
-            this.updatedAt = task.getUpdatedAt();
-            this.startAt = task.getStartAt();
-            this.endAt = task.getEndAt();
-            this.title = task.getTitle();
-
-            this.assignee = assignments.stream().map(a -> new DailyTasksOutDTO.AssignmentDTO(a.getUser())).collect(Collectors.toList());
-            this.priority = task.getPriority();
-            this.progress = task.getProgress();
+        public DailyTasksOutDTO(List<DailyTasks> tasks, Long totalCount) {
+            this.tasks = tasks;
+            this.totalCount = totalCount;
         }
 
         @Getter
-        public class TaskOwner{
-            private Long userId;
-            private String fullname;
-            private String profileImageUrl;
-            private User.Department department;
+        public static class DailyTasks {
+            private Long taskId;
 
-            public TaskOwner(Long userId, String fullname, String profileImageUrl, User.Department department) {
-                this.userId = userId;
-                this.fullname = fullname;
-                this.profileImageUrl = profileImageUrl;
-                this.department = department;
+            private DailyTasks.TaskOwner taskOwner;
+
+            private ZonedDateTime createdAt;
+            private ZonedDateTime updatedAt;
+            private LocalDate startAt;
+            private LocalDate endAt;
+            private String title;
+            private List<DailyTasks.AssignmentDTO> assignee;
+
+            private Task.Priority priority;
+            private Task.Progress progress;
+
+            @Builder
+            public DailyTasks(Task task, List<Assignment> assignments) {
+                this.taskId = task.getId();
+                this.taskOwner = new DailyTasks.TaskOwner(
+                        task.getUser().getId(),
+                        task.getUser().getFullname(),
+                        task.getUser().getProfile().getUrl(),
+                        task.getUser().getDepartment());
+
+                this.createdAt = task.getCreatedAt();
+                this.updatedAt = task.getUpdatedAt();
+                this.startAt = task.getStartAt();
+                this.endAt = task.getEndAt();
+                this.title = task.getTitle();
+
+                this.assignee = assignments.stream().map(a -> new DailyTasks.AssignmentDTO(a.getUser())).collect(Collectors.toList());
+                this.priority = task.getPriority();
+                this.progress = task.getProgress();
             }
-        }
-        @Getter
-        public class AssignmentDTO{
-            private Long userId;
-            private String profileImageUrl;
 
-            public AssignmentDTO(User user) {
-                this.userId = user.getId();
-                this.profileImageUrl = user.getProfile().getUrl();
+            @Getter
+            public class TaskOwner {
+                private Long userId;
+                private String fullname;
+                private String profileImageUrl;
+                private User.Department department;
+
+                public TaskOwner(Long userId, String fullname, String profileImageUrl, User.Department department) {
+                    this.userId = userId;
+                    this.fullname = fullname;
+                    this.profileImageUrl = profileImageUrl;
+                    this.department = department;
+                }
+            }
+
+            @Getter
+            public class AssignmentDTO {
+                private Long userId;
+                private String profileImageUrl;
+
+                public AssignmentDTO(User user) {
+                    this.userId = user.getId();
+                    this.profileImageUrl = user.getProfile().getUrl();
+                }
             }
         }
     }
