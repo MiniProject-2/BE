@@ -6,6 +6,8 @@ import com.task.needmoretask.dto.task.TaskRequest;
 import com.task.needmoretask.dto.task.TaskResponse;
 import com.task.needmoretask.service.TaskService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -103,23 +105,26 @@ public class TaskController {
     // Daily Overview
     @GetMapping("/tasks")
     public ResponseEntity<?> getDailyTasks(
-            @RequestParam("date") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date
+            @RequestParam("date") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date,
+            @RequestParam("page") int page
             ){
-        List<TaskResponse.DailyTasksOutDTO> dailyTasksOutDTOList;
-        dailyTasksOutDTOList = taskService.getDailyTasks(date);
+        Pageable pageable = PageRequest.of(page, 10);
+        TaskResponse.DailyTasksOutDTO dailyTasksOutDTO;
+        dailyTasksOutDTO = taskService.getDailyTasks(date, pageable);
 
-        return ResponseEntity.ok().body(new ResponseDTO<>(dailyTasksOutDTOList));
+        return ResponseEntity.ok().body(new ResponseDTO<>(dailyTasksOutDTO));
     }
 
     // Admin Overview
-    @GetMapping("/admin/tasks")
+    @GetMapping("/tasks/period")
     public ResponseEntity<?> getPickedTasks(
             @RequestParam("startat") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam("endat") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
-            @AuthenticationPrincipal MyUserDetails myUserDetails
+            @RequestParam("page") int page
     ){
-        List<TaskResponse.DailyTasksOutDTO> adminDailyTasksOutDTOList;
-        adminDailyTasksOutDTOList = taskService.getPickedTasks(startDate, endDate, myUserDetails.getUser());
+        Pageable pageable = PageRequest.of(page, 10);
+        TaskResponse.DailyTasksOutDTO adminDailyTasksOutDTOList;
+        adminDailyTasksOutDTOList = taskService.getPickedTasks(startDate, endDate, pageable);
 
         return ResponseEntity.ok().body(new ResponseDTO<>(adminDailyTasksOutDTOList));
     }
