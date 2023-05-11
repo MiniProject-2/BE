@@ -14,6 +14,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -228,6 +231,27 @@ public class TaskRepositoryTest {
         }
         assertThat(tasksPS.size()).isEqualTo(8);
     }
+
+    @Test
+    @DisplayName("Daily OverView")
+    @DirtiesContext
+    public void findTasksByDDate(){
+        LocalDate date = LocalDate.of(2023, 5, 5);
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Task> tasksPS = taskRepository.findByDate(date, pageable);
+
+        for(Task t:tasksPS) {
+            System.out.println(t.getId());
+            System.out.println(t.getTitle());
+            System.out.println(t.getDescription());
+            System.out.println(t.getStartAt());
+            System.out.println(t.getEndAt());
+            System.out.println(t.getUser().getEmail());
+            System.out.println();
+        }
+        assertThat(tasksPS.getTotalElements()).isEqualTo(8);
+    }
+
 
 
 }
