@@ -99,6 +99,14 @@ public class UserService {
         return new UserResponse.ProfileOut(profile);
     }
 
+    public UserResponse.AllUsersOut getAllUsers(){
+        List<User> users = userRepository.findAll();
+        List<UserResponse.AllUsersOut.AllUserOut> userOut = users.stream()
+                .map(UserResponse.AllUsersOut.AllUserOut::new)
+                .collect(Collectors.toList());
+        return new UserResponse.AllUsersOut(userOut);
+    }
+
     //유저 조회
     public UserResponse.UsersOut getUsers(String role, Pageable pageable) {
         if(!role.equals("all") && !role.equals("admin") && !role.equals("user")) throw new Exception400("role","잘못된 요청입니다");

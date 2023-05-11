@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User,Long> {
@@ -17,6 +18,9 @@ public interface UserRepository extends JpaRepository<User,Long> {
 
     @Query("select u from User u where u.id=:id and u.isDeleted=false")
     Optional<User> findById(@Param("id") Long id);
+
+    @Query("select u from User u where u.isDeleted=false")
+    List<User> findAll();
 
     @Query("select u from User u where u.isDeleted=false")
     Page<User> findAll(Pageable pageable);
