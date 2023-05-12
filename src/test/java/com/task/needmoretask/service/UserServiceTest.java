@@ -12,14 +12,19 @@ import com.task.needmoretask.model.profile.Profile;
 import com.task.needmoretask.model.profile.ProfileRepository;
 import com.task.needmoretask.model.user.User;
 import com.task.needmoretask.model.user.UserRepository;
+import org.apache.http.entity.ContentType;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -48,9 +53,14 @@ class UserServiceTest {
     private MyJwtProvider myJwtProvider;
 
     private User user;
+    private Profile profile;
+    private final String path = "src/test/resources/images/";
+    private String originalFilename = "default.jpeg";
 
     @BeforeEach
     void setUp() throws IOException {
+        profile = Profile.builder().url(path+originalFilename).build();
+
         user = User.builder()
                 .id(1L)
                 .email("email@email.com")
@@ -59,7 +69,7 @@ class UserServiceTest {
                 .fullname("test")
                 .department(User.Department.HR)
                 .joinCompanyYear(2023)
-                .profile(Profile.builder().url("default.jpg").build())
+                .profile(profile)
                 .role(User.Role.USER)
                 .build();
 
@@ -82,6 +92,13 @@ class UserServiceTest {
                     String password = invocation.getArgument(0);
                     if(!user.getPassword().equals(password)) throw new Exception400("password", "비밀번호가 틀렸습니다");
                     return true;
+                });
+
+        lenient().when(s3Uploader.upload(any(),anyString()))
+                .thenAnswer(invocation -> {
+                    MultipartFile img = invocation.getArgument(0);
+                    if(img.isEmpty()) throw new Exception400("profile", "이미지가 전송되지 않았습니다");
+                    return path+originalFilename;
                 });
     }
 
@@ -131,6 +148,40 @@ class UserServiceTest {
             verify(logRepository, times(1)).findLogByEmail(user.getEmail());
             verify(myJwtProvider, times(1)).create(user);
             Assertions.assertDoesNotThrow(() -> userService.login(request, "", ""));
+        }
+    }
+
+    @Nested
+    @DisplayName("프로필 업로드")
+    class UploadProfile{
+        @Nested
+        @DisplayName("실패")
+        class Fail{
+            @Test
+            @DisplayName("1: 확장자가 다름")
+            void test1() throws IOException {
+                //given
+                originalFilename = "fail.txt";
+                String contentType = ContentType.TEXT_PLAIN.toString();
+                byte[] content = Files.readAllBytes(Paths.get(path+originalFilename));
+                MultipartFile image = new MockMultipartFile(originalFilename,originalFilename,contentType,content);
+                //when then
+                Assertions.assertThrows(Exception400.class, () -> userService.updateImage(image));
+            }
+        }
+        @Test
+        @DisplayName("성공")
+        void success() throws IOException {
+            //given
+            String contentType = ContentType.IMAGE_JPEG.toString();
+            byte[] content = Files.readAllBytes(Paths.get(path+originalFilename));
+            MultipartFile image = new MockMultipartFile(originalFilename,originalFilename,contentType,content);
+            //when
+            userService.updateImage(image);
+            //then
+            verify(s3Uploader,times(1)).upload(image,"images");
+            verify(profileRepository,times(1)).save(profile);
+            Assertions.assertDoesNotThrow(() -> userService.updateImage(image));
         }
     }
 }
