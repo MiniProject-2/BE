@@ -17,7 +17,11 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,6 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -56,6 +61,11 @@ class UserServiceTest {
     private Profile profile;
     private final String path = "src/test/resources/images/";
     private String originalFilename = "default.jpeg";
+    private final Pageable pageable = PageRequest.of(0,10);
+
+    private static Object answer(InvocationOnMock invocation) {
+        return true;
+    }
 
     @BeforeEach
     void setUp() throws IOException {
@@ -85,6 +95,16 @@ class UserServiceTest {
                     String email = invocation.getArgument(0);
                     if(!user.getEmail().equals(email)) throw new Exception401("로그인에 실패했습니다");
                     return Optional.of(user);
+                });
+
+        lenient().when(userRepository.findAll(pageable))
+                .thenAnswer(invocation -> new PageImpl<>(List.of(user),pageable,1));
+
+        lenient().when(userRepository.findUsersByFullName(anyString(),any()))
+                .thenAnswer(invocation -> {
+                    String fullName = invocation.getArgument(0);
+                    if(user.getFullname().equals(fullName)) return new PageImpl<>(List.of(user),pageable,1);
+                    return Optional.empty();
                 });
 
         lenient().when(passwordEncoder.matches(anyString(), anyString()))
@@ -182,6 +202,63 @@ class UserServiceTest {
             verify(s3Uploader,times(1)).upload(image,"images");
             verify(profileRepository,times(1)).save(profile);
             Assertions.assertDoesNotThrow(() -> userService.updateImage(image));
+        }
+    }
+
+    @Nested
+    @DisplayName("유저 전체 조회")
+    class AllUsers{
+        @Test
+        @DisplayName("성공")
+        void success(){
+            //given
+            //when
+            userService.getAllUsers();
+            //then
+            verify(userRepository,times(1)).findAll();
+            Assertions.assertDoesNotThrow(() -> userService.getAllUsers());
+        }
+    }
+
+    @Nested
+    @DisplayName("유저 조회")
+    class Users{
+        @Nested
+        @DisplayName("실패")
+        class Fail{
+            @Test
+            @DisplayName("1: param 잘못 전달됨")
+            void test1(){
+                //given
+                String role = "test";
+                //when then
+                Assertions.assertThrows(Exception400.class, () -> userService.getUsers(role,pageable));
+            }
+        }
+        @Test
+        @DisplayName("성공")
+        void success(){
+            //given
+            String role = "all";
+            //when
+            userService.getUsers(role,pageable);
+            //then
+            verify(userRepository,times(1)).findAll(pageable);
+        }
+    }
+
+    @Nested
+    @DisplayName("유저 검색")
+    class SearchUsers{
+        @Test
+        @DisplayName("성공")
+        void success(){
+            //given
+            String fullName = user.getFullname();
+            //when
+            userService.searchUsers(fullName,pageable);
+            //then
+            verify(userRepository,times(1)).findUsersByFullName(fullName,pageable);
         }
     }
 }
