@@ -8,7 +8,6 @@ import com.task.needmoretask.core.exception.Exception404;
 import com.task.needmoretask.core.util.S3Uploader;
 import com.task.needmoretask.dto.user.UserRequest;
 import com.task.needmoretask.dto.user.UserResponse;
-import com.task.needmoretask.model.auth.Auth;
 import com.task.needmoretask.model.auth.AuthRepository;
 import com.task.needmoretask.model.log.Log;
 import com.task.needmoretask.model.log.LogRepository;
@@ -79,15 +78,7 @@ public class UserService {
                         .clientIP(ipAddress)
                         .build())
         );
-        String accessToken = myJwtProvider.create(user);
-        Auth auth = authRepository.findAuthByAccessToken(accessToken)
-                .orElseGet(() -> authRepository.save(Auth.builder()
-                        .userId(user.getId())
-                        .accessToken(accessToken)
-                        .build())
-                );
-
-        return auth.getAccessToken();
+        return myJwtProvider.create(user);
     }
 
     //프로필 업로드

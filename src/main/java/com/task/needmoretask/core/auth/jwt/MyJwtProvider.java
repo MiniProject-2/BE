@@ -53,7 +53,6 @@ public class MyJwtProvider {
         Auth auth = Auth.builder()
                 .userId(user.getId())
                 .accessToken(accessToken)
-//                .refreshToken()
                 .build();
         authRepository.save(auth);
 
