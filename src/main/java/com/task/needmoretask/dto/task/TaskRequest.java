@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.AssertTrue;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
@@ -25,6 +26,11 @@ public class TaskRequest {
     private List<AssigneeRequest> assignee;
     @NotNull
     private Task.Priority priority;
+
+    @AssertTrue(message = "startAt must be before endAt")
+    private boolean isStartAtBeforeEndAt(){
+        return startAt.isBefore(endAt);
+    }
     @NotNull
     private Task.Progress progress;
     @Getter @Builder
