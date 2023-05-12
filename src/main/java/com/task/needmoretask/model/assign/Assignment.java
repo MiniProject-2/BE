@@ -3,15 +3,15 @@ package com.task.needmoretask.model.assign;
 import com.task.needmoretask.model.task.Task;
 import com.task.needmoretask.model.user.User;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import java.util.Objects;
 
-@Getter
+@Entity @Getter
+@EqualsAndHashCode
 @NoArgsConstructor
-@Entity
 @Table(name = "assign_tb")
 public class Assignment {
     @Id @GeneratedValue
@@ -32,18 +32,5 @@ public class Assignment {
 
     public void deactivateAssign(){
         this.isDeleted = true;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Assignment that = (Assignment) o;
-        return user.equals(that.user) && task.equals(that.task);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(user, task);
     }
 }
