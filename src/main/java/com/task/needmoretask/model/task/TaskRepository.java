@@ -33,7 +33,12 @@ public interface TaskRepository extends JpaRepository<Task,Long> {
             "and ((t.startAt >= :startDate " +
             "and t.startAt <= :endDate) " +
             "or (t.endAt >= :startDate " +
-            "and t.endAt <= :endDate))", countQuery = "select COUNT(t) from Task t where t.isDeleted = false")
+            "and t.endAt <= :endDate) " +
+            "or (:startDate >= t.startAt " +
+            "and :endDate <= t.endAt) " +
+            "or (t.startAt >= :startDate " +
+            "and t.endAt <= :endDate)" +
+            ")", countQuery = "select COUNT(t) from Task t where t.isDeleted = false")
     Page<Task> findTasksByBetweenDate(@Param("startDate") LocalDate startDate,
                                       @Param("endDate") LocalDate endDate,
                                       Pageable pageable);
