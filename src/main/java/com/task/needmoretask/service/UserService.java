@@ -80,12 +80,14 @@ public class UserService {
                         .build())
         );
         String accessToken = myJwtProvider.create(user);
-        Auth auth = Auth.builder()
-                .userId(user.getId())
-                .accessToken(accessToken)
-                .build();
-        authRepository.save(auth);
-        return accessToken;
+        Auth auth = authRepository.findAuthByAccessToken(accessToken)
+                .orElseGet(() -> authRepository.save(Auth.builder()
+                        .userId(user.getId())
+                        .accessToken(accessToken)
+                        .build())
+                );
+
+        return auth.getAccessToken();
     }
 
     //프로필 업로드

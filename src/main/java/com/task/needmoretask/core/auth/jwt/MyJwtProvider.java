@@ -40,12 +40,15 @@ public class MyJwtProvider {
 
     @Transactional
     public String create(User user) {
-        String accessToken = JWT.create()
-                .withSubject(SUBJECT)
-                .withExpiresAt(new Date(System.currentTimeMillis() + EXP))
-                .withClaim("id", user.getId())
-                .withClaim("role", user.getRole().toString())
-                .sign(Algorithm.HMAC512(SECRET));
+        String accessToken = authRepository.findAuthByUserId(user.getId())
+                .map(Auth::getAccessToken)
+                .orElseGet(() -> JWT.create()
+                        .withSubject(SUBJECT)
+                        .withExpiresAt(new Date(System.currentTimeMillis() + EXP))
+                        .withClaim("id", user.getId())
+                        .withClaim("role", user.getRole().toString())
+                        .sign(Algorithm.HMAC512(SECRET))
+                );
 
         Auth auth = Auth.builder()
                 .userId(user.getId())
