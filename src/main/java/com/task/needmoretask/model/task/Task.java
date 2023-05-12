@@ -4,16 +4,17 @@ import com.task.needmoretask.core.util.Timestamped;
 import com.task.needmoretask.dto.task.TaskRequest;
 import com.task.needmoretask.model.user.User;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.time.LocalDate;
-import java.util.Objects;
 
 @Getter
 @NoArgsConstructor
 @Entity @Table(name = "task_tb")
+@EqualsAndHashCode(callSuper = false)
 public class Task extends Timestamped {
     @Id @GeneratedValue
     private Long id;
@@ -70,18 +71,5 @@ public class Task extends Timestamped {
 
     public void deactivateTask(){
         this.isDeleted = true;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Task task = (Task) o;
-        return isDeleted == task.isDeleted && user.equals(task.user) && title.equals(task.title) && description.equals(task.description) && startAt.equals(task.startAt) && endAt.equals(task.endAt) && progress == task.progress && priority == task.priority;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(user, title, description, startAt, endAt, progress, priority, isDeleted);
     }
 }

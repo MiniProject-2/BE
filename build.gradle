@@ -1,5 +1,6 @@
 plugins {
 	id 'java'
+	id 'jacoco'
 	id 'org.springframework.boot' version '2.7.11'
 	id 'io.spring.dependency-management' version '1.0.15.RELEASE'
 }
@@ -43,4 +44,60 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+	finalizedBy 'jacocoTestReport'
 }
+
+jacoco {
+	toolVersion = '0.8.5'
+}
+
+jacocoTestReport {
+	reports {
+		html.enabled true
+		csv.enabled false
+		xml.enabled false
+	}
+	afterEvaluate {
+		classDirectories.setFrom(files(classDirectories.files.collect {
+			fileTree(dir: it,
+					exclude: ["com/task/needmoretask/core/**",
+							  "com/task/needmoretask/dto/**",
+							  "com/task/needmoretask/NeedMoreTaskApplication.class"])
+		}))
+	}
+	finalizedBy 'jacocoTestCoverageVerification'
+
+}
+
+jacocoTestCoverageVerification {
+	afterEvaluate {
+		classDirectories.setFrom(files(classDirectories.files.collect {
+			fileTree(dir: it,
+					exclude: ["com/task/needmoretask/core/**",
+							  "com/task/needmoretask/dto/**",
+							  "com/task/needmoretask/NeedMoreTaskApplication.class"])
+		}))
+	}
+	violationRules{
+		rule {
+			enabled = false //true로 바꾸기
+			element = 'CLASS'
+
+			limit {
+				counter = 'LINE'
+				value = 'COVEREDRATIO'
+				minimum = 0.80
+			}
+
+			limit {
+				counter = 'BRANCH'
+				value = 'COVEREDRATIO'
+				minimum = 0.80
+			}
+
+			excludes = ["com/task/needmoretask/core/**",
+						"com/task/needmoretask/dto/**"]
+		}
+	}
+}
+
