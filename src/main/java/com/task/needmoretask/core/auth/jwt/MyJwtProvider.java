@@ -59,7 +59,6 @@ public class MyJwtProvider {
                         return newToken;
                     });
 
-
         return TOKEN_PREFIX + accessToken;
     }
 
