@@ -3,6 +3,7 @@ package com.task.needmoretask.service;
 import com.task.needmoretask.core.auth.jwt.MyJwtProvider;
 import com.task.needmoretask.core.exception.Exception400;
 import com.task.needmoretask.core.exception.Exception401;
+import com.task.needmoretask.core.exception.Exception403;
 import com.task.needmoretask.core.exception.Exception404;
 import com.task.needmoretask.core.util.S3Uploader;
 import com.task.needmoretask.dto.user.UserRequest;
@@ -359,6 +360,26 @@ class UserServiceTest {
                         .build();
                 //when then
                 Assertions.assertThrows(Exception404.class, () -> userService.updateUserInfo(id, request, user));
+            }
+
+            @Test
+            @DisplayName("3: 권한 없음")
+            void test3(){
+                //given
+                User user1 = User.builder().id(2L).role(User.Role.USER).build();
+                String password = user.getPassword();
+                Long profileId = 1L;
+                UserRequest.UserIn request = UserRequest.UserIn.builder()
+                        .password(password)
+                        .passwordCheck(password)
+                        .phone(user.getPhone())
+                        .fullName(user.getFullname())
+                        .department(user.getDepartment())
+                        .joinCompanyYear(user.getJoinCompanyYear())
+                        .profileId(profileId)
+                        .build();
+                //when then
+                Assertions.assertThrows(Exception403.class, () -> userService.updateUserInfo(user.getId(),request,user1));
             }
         }
 
