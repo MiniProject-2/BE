@@ -17,7 +17,6 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -62,10 +61,6 @@ class UserServiceTest {
     private final String path = "src/test/resources/images/";
     private String originalFilename = "default.jpeg";
     private final Pageable pageable = PageRequest.of(0,10);
-
-    private static Object answer(InvocationOnMock invocation) {
-        return true;
-    }
 
     @BeforeEach
     void setUp() throws IOException {
@@ -119,6 +114,13 @@ class UserServiceTest {
                     MultipartFile img = invocation.getArgument(0);
                     if(img.isEmpty()) throw new Exception400("profile", "이미지가 전송되지 않았습니다");
                     return path+originalFilename;
+                });
+
+        lenient().when(profileRepository.findById(anyLong()))
+                .thenAnswer(invocation -> {
+                    Long id = invocation.getArgument(0);
+                    if(!id.equals(1L) && !id.equals(2L)) throw new Exception404("프로필이 없습니다");
+                    return Optional.of(profile);
                 });
     }
 
@@ -244,6 +246,7 @@ class UserServiceTest {
             userService.getUsers(role,pageable);
             //then
             verify(userRepository,times(1)).findAll(pageable);
+            Assertions.assertDoesNotThrow(() -> userService.getUsers(role, pageable));
         }
     }
 
@@ -259,6 +262,222 @@ class UserServiceTest {
             userService.searchUsers(fullName,pageable);
             //then
             verify(userRepository,times(1)).findUsersByFullName(fullName,pageable);
+            Assertions.assertDoesNotThrow(() -> userService.searchUsers(fullName, pageable));
+        }
+    }
+
+    @Nested
+    @DisplayName("개인정보 조회")
+    class UserInfo {
+        @Test
+        @DisplayName("실패: 유저 없음")
+        void test() {
+            //given
+            Long id = 2L;
+            //when then
+            Assertions.assertThrows(Exception404.class, () -> userService.getUserInfo(id));
+        }
+
+        @Test
+        @DisplayName("성공")
+        void success() {
+            //given
+            Long id = user.getId();
+            //when
+            userService.getUserInfo(id);
+            //then
+            verify(userRepository, times(1)).findById(id);
+            Assertions.assertDoesNotThrow(() -> userService.getUserInfo(id));
+        }
+    }
+
+    @Nested
+    @DisplayName("개인정보 수정")
+    class UpdateUserInfo {
+        @Nested
+        @DisplayName("실패")
+        class Fail {
+            @Nested
+            @DisplayName("1: 비밀번호 변경")
+            class Password {
+                @Test
+                @DisplayName("1-1: 비밀번호 확인 다름")
+                void test1() {
+                    //given
+                    Long id = user.getId();
+                    String passwordCheck = "000000";
+                    Long profileId = 1L;
+                    UserRequest.UserIn request = UserRequest.UserIn.builder()
+                            .password(user.getPassword())
+                            .passwordCheck(passwordCheck)
+                            .phone(user.getPhone())
+                            .fullName(user.getFullname())
+                            .department(user.getDepartment())
+                            .joinCompanyYear(user.getJoinCompanyYear())
+                            .profileId(profile.getId())
+                            .build();
+                    //when then
+                    Assertions.assertThrows(Exception400.class, () -> userService.updateUserInfo(id, request, user));
+                }
+
+                @Test
+                @DisplayName("1-2: 비밀번호 정규식 다름")
+                void test2() {
+                    //given
+                    Long id = user.getId();
+                    String password = "123";
+                    Long profileId = 1L;
+                    UserRequest.UserIn request = UserRequest.UserIn.builder()
+                            .password(password)
+                            .passwordCheck(password)
+                            .phone(user.getPhone())
+                            .fullName(user.getFullname())
+                            .department(user.getDepartment())
+                            .joinCompanyYear(user.getJoinCompanyYear())
+                            .profileId(profile.getId())
+                            .build();
+                    //when then
+                    Assertions.assertThrows(Exception400.class, () -> userService.updateUserInfo(id, request, user));
+                }
+            }
+
+            @Test
+            @DisplayName("2: 프로필 없음")
+            void test(){
+                //given
+                Long id = user.getId();
+                String password = user.getPassword();
+                Long profileId = 3L;
+                UserRequest.UserIn request = UserRequest.UserIn.builder()
+                        .password(password)
+                        .passwordCheck(password)
+                        .phone(user.getPhone())
+                        .fullName(user.getFullname())
+                        .department(user.getDepartment())
+                        .joinCompanyYear(user.getJoinCompanyYear())
+                        .profileId(profileId)
+                        .build();
+                //when then
+                Assertions.assertThrows(Exception404.class, () -> userService.updateUserInfo(id, request, user));
+            }
+        }
+
+        @Nested
+        @DisplayName("성공")
+        class Success {
+            @Test
+            @DisplayName("비밀번호, 프로필 변경x")
+            void test1() {
+                //given
+                Long id = user.getId();
+                Long profileId = 1L;
+                UserRequest.UserIn request = UserRequest.UserIn.builder()
+                        .password("")
+                        .passwordCheck("")
+                        .phone(user.getPhone())
+                        .fullName(user.getFullname())
+                        .department(user.getDepartment())
+                        .joinCompanyYear(user.getJoinCompanyYear())
+                        .profileId(profileId)
+                        .build();
+                //when
+                userService.updateUserInfo(id,request,user);
+                //then
+                verify(passwordEncoder, times(0)).encode("");
+                verify(profileRepository, times(0)).findById(profileId);
+                Assertions.assertDoesNotThrow(() -> userService.updateUserInfo(id, request, user));
+            }
+            @Test
+            @DisplayName("비밀번호 변경")
+            void test2() {
+                //given
+                Long id = user.getId();
+                String password = "000000";
+                Long profileId = 1L;
+                UserRequest.UserIn request = UserRequest.UserIn.builder()
+                        .password(password)
+                        .passwordCheck(password)
+                        .phone(user.getPhone())
+                        .fullName(user.getFullname())
+                        .department(user.getDepartment())
+                        .joinCompanyYear(user.getJoinCompanyYear())
+                        .profileId(profileId)
+                        .build();
+                //when
+                userService.updateUserInfo(id,request,user);
+                //then
+                verify(passwordEncoder, times(1)).encode(password);
+                verify(profileRepository, times(0)).findById(profileId);
+                Assertions.assertDoesNotThrow(() -> userService.updateUserInfo(id, request, user));
+            }
+            @Test
+            @DisplayName("프로필 변경")
+            void test3() {
+                //given
+                Long id = user.getId();
+                Long profileId = 2L;
+                UserRequest.UserIn request = UserRequest.UserIn.builder()
+                        .password("")
+                        .passwordCheck("")
+                        .phone(user.getPhone())
+                        .fullName(user.getFullname())
+                        .department(user.getDepartment())
+                        .joinCompanyYear(user.getJoinCompanyYear())
+                        .profileId(profileId)
+                        .build();
+                //when
+                userService.updateUserInfo(id,request,user);
+                //then
+                verify(passwordEncoder, times(0)).encode("");
+                verify(profileRepository,times(1)).findById(profileId);
+                Assertions.assertDoesNotThrow(() -> userService.updateUserInfo(id, request, user));
+            }
+            @Test
+            @DisplayName("비밀번호, 프로필 변경")
+            void test4() {
+                //given
+                Long id = user.getId();
+                String password = "000000";
+                Long profileId = 2L;
+                UserRequest.UserIn request = UserRequest.UserIn.builder()
+                        .password(password)
+                        .passwordCheck(password)
+                        .phone(user.getPhone())
+                        .fullName(user.getFullname())
+                        .department(user.getDepartment())
+                        .joinCompanyYear(user.getJoinCompanyYear())
+                        .profileId(profileId)
+                        .build();
+                //when
+                userService.updateUserInfo(id,request,user);
+                //then
+                verify(passwordEncoder, times(1)).encode(password);
+                verify(profileRepository, times(1)).findById(profileId);
+                Assertions.assertDoesNotThrow(() -> userService.updateUserInfo(id, request, user));
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("정보 요청")
+    class GetAuth{
+        @Test
+        @DisplayName("실패: 유저가 다름")
+        void fail(){
+            //given
+            User user1 = User.builder().id(2L).build();
+            //when then
+            Assertions.assertThrows(Exception404.class, () -> userService.getAuth(user1));
+        }
+        @Test
+        @DisplayName("성공")
+        void success(){
+            //given
+            //when
+            userService.getAuth(user);
+            //then
+            verify(userRepository,times(1)).findById(user.getId());
+            Assertions.assertDoesNotThrow(() -> userService.getAuth(user));
         }
     }
 }
