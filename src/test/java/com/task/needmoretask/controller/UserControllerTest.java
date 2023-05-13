@@ -14,11 +14,16 @@ import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -215,6 +220,34 @@ class UserControllerTest {
     }
 
     @Nested
+    @DisplayName("User 전체 조회")
+    class GetAllUsers{
+        @Test
+        @DirtiesContext
+        @DisplayName("성공")
+        void test() throws JsonProcessingException {
+            //given
+            User user = userRepository.findById(userId1).orElse(null);
+            HttpHeaders header = headers(user);
+            HttpEntity<?> requestEntity = new HttpEntity<>(header);
+
+            //when
+            ResponseEntity<?> response = testRestTemplate
+                .exchange(
+                    "/api/users",
+                    HttpMethod.GET,
+                    requestEntity,
+                    ResponseDTO.class
+                    );
+
+            //then
+            Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+            ObjectMapper om = new ObjectMapper();
+            JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
+            Assertions.assertEquals("성공", jsonNode.get("msg").asText());
+        }
+    }
+    @Nested
     @DisplayName("User 조회")
     class GetUsers{
         @Test
@@ -276,6 +309,35 @@ class UserControllerTest {
             Assertions.assertEquals("성공", jsonNode.get("msg").asText());
             JsonNode data = jsonNode.get("data");
             Assertions.assertEquals(2,data.get("users").size());
+        }
+    }
+
+    @Nested
+    @DisplayName("개인정보 조회")
+    class GetUserInfo{
+        @Test
+        @DirtiesContext
+        @DisplayName("")
+        void test() throws JsonProcessingException {
+            //given
+            User user = userRepository.findById(userId1).orElse(null);
+            HttpHeaders header = headers(user);
+            HttpEntity<?> requestEntity = new HttpEntity<>(header);
+
+            //when
+            ResponseEntity<?> response = testRestTemplate
+                .exchange(
+                    "/api/user/"+userId1,
+                    HttpMethod.GET,
+                    requestEntity,
+                    ResponseDTO.class
+                    );
+
+            //then
+            Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+            ObjectMapper om = new ObjectMapper();
+            JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
+            Assertions.assertEquals("성공", jsonNode.get("msg").asText());
         }
     }
 
@@ -398,7 +460,6 @@ class UserControllerTest {
     class UpdateRole{
 
         @Test
-        @Order(1) @Disabled
         @DirtiesContext
         void updateRole() throws JsonProcessingException {
             UserRequest.updateRoleInDTO updateRoleInDTO =
@@ -426,15 +487,6 @@ class UserControllerTest {
             System.out.println(jsonNode);
             Assertions.assertEquals("성공", jsonNode.get("msg").asText());
         }
-
-        @Test
-        @Order(2) @Disabled
-        @DirtiesContext
-        void updateRole2(){
-
-        }
-
-
     }
 
     @Nested
@@ -513,5 +565,43 @@ class UserControllerTest {
             JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
             System.out.println(jsonNode);
         }
+    }
+
+    @Test
+    @DirtiesContext
+    @DisplayName("프로필 업로드")
+    void profile() throws IOException {
+        //given
+        InputStream inputStream = getClass().getClassLoader().getResourceAsStream("images/default.jpeg");
+        byte[] imageBytes = inputStream.readAllBytes();
+        ByteArrayResource resource = new ByteArrayResource(imageBytes) {
+            @Override
+            public String getFilename() {
+                return "default.jpeg"; // 파일의 원래 이름 설정
+            }
+        };
+
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("profileImage", resource); // 파일 파트 추가
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA); // Content-Type 설정
+
+        HttpEntity<?> request = new HttpEntity<>(body, headers);
+
+        //when
+        ResponseEntity<?> response = testRestTemplate
+                .postForEntity(
+                        "/api/user/profile",
+                        request,
+                        ResponseDTO.class
+                );
+
+        //then
+        ObjectMapper om = new ObjectMapper();
+        JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
+        Assertions.assertEquals("성공", jsonNode.get("msg").asText());
+        JsonNode data = jsonNode.get("data");
+        Assertions.assertEquals(2L,data.get("profileId").asLong());
     }
 }
