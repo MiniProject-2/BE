@@ -65,24 +65,24 @@ public class MyJwtProvider {
 
     public static String resolveToken(HttpServletRequest request) {
         String jwt = request.getHeader(HEADER);
-        if (StringUtils.hasText(jwt) && jwt.startsWith(TOKEN_PREFIX)) return jwt.substring(7);
+        if (StringUtils.hasText(jwt) && jwt.startsWith(TOKEN_PREFIX)) return jwt.replaceAll(TOKEN_PREFIX,"");
         return null;
     }
 
     public static boolean validateToken(String jwt) {
         try {
-            Jws<Claims> claims = Jwts.parser().setSigningKey(SECRET).parseClaimsJws(jwt);
-            return !claims.getBody().getExpiration().before(new Date());
+            Claims claims = Jwts.parser().setSigningKey(SECRET.getBytes()).parseClaimsJws(jwt).getBody();
+            return !claims.getExpiration().before(new Date());
         } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public void invalidateToken(String jwt) {
         //토큰 파싱
-        Claims claims = Jwts.parser().setSigningKey(SECRET).parseClaimsJws(jwt).getBody();
-        Long id = (Long) claims.get("id");
+        Claims claims = Jwts.parser().setSigningKey(SECRET.getBytes()).parseClaimsJws(jwt).getBody();
+        Long id = claims.get("id", Long.class);
 
         //토큰 만료시간 설정
         Date expirationDate = new Date(System.currentTimeMillis() - 1000);
