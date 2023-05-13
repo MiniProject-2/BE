@@ -246,4 +246,29 @@ class TaskServiceTest {
             }
         }
     }
+
+    @Nested
+    @DisplayName("Task 상세보기")
+    class Detail{
+        @Test
+        @DisplayName("실패: Task 없음")
+        void test(){
+            //given
+            long taskId = 2;
+            //when then
+            Assertions.assertThrows(Exception404.class, () -> taskService.getDetailTask(taskId));
+        }
+        @Test
+        @DisplayName("성공")
+        void success(){
+            //given
+            long taskId = 1;
+            //when
+            taskService.getDetailTask(taskId);
+            //then
+            verify(taskRepository,times(1)).findById(taskId);
+            verify(assignRepository,times(1)).findAssigneeByTaskId(taskId);
+            Assertions.assertDoesNotThrow(() -> taskService.getDetailTask(taskId));
+        }
+    }
 }
