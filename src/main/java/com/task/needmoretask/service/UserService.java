@@ -137,7 +137,9 @@ public class UserService {
             findUser.pwdUpdate(passwordEncoder.encode(userIn.getPassword()));
         }
         if (!userIn.getProfileId().equals(1L)) {
-            Profile profile = profileRepository.getReferenceById(userIn.getProfileId());
+            Profile profile = profileRepository.findById(userIn.getProfileId()).orElseThrow(
+                    () -> new Exception404("프로필이 없습니다")
+            );
             findUser.update(userIn, profile);
         }else findUser.update(userIn);
         return new UserResponse.UserOut(findUser);
