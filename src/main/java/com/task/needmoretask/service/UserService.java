@@ -102,9 +102,10 @@ public class UserService {
 
     //유저 조회
     public UserResponse.UsersOut getUsers(String role, Pageable pageable) {
-        if(!role.equals("all") && !role.equals("admin") && !role.equals("user")) throw new Exception400("role","잘못된 요청입니다");
-        Page<User> users = userRepository.findAll(pageable);
-        if(!role.equals("all")) users = userRepository.findAllByRole(User.Role.valueOf(role.toUpperCase()), pageable);
+        Page<User> users;
+        if(!isValidRole(role)) throw new Exception400("role","잘못된 요청입니다");
+        if(role.equals("all")) users = userRepository.findAll(pageable);
+        else users = userRepository.findAllByRole(User.Role.valueOf(role.toUpperCase()), pageable);
         List<UserResponse.UsersOut.UserOut> userOut = users.stream()
                 .map(UserResponse.UsersOut.UserOut::new)
                 .collect(Collectors.toList());
@@ -194,5 +195,9 @@ public class UserService {
     private void forbiddenUser(User findUser, User loginUser) {
         if (loginUser.getRole() == User.Role.USER && !findUser.getId().equals(loginUser.getId()))
             throw new Exception403("권한이 없습니다");
+    }
+
+    private boolean isValidRole(String role){
+        return role.equals("all") || role.equals("user") || role.equals("admin");
     }
 }
