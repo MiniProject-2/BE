@@ -189,6 +189,31 @@ class UserControllerTest {
 
     }
 
+    @Test
+    @DirtiesContext
+    @DisplayName("로그아웃")
+    void logout() throws JsonProcessingException {
+        //given
+        User user = userRepository.findById(userId1).orElse(null);
+        HttpHeaders header = headers(user);
+        HttpEntity<?> requestEntity = new HttpEntity<>(header);
+
+        //when
+        ResponseEntity<?> response = testRestTemplate
+            .exchange(
+                "/api/logout",
+                HttpMethod.POST,
+                requestEntity,
+                ResponseDTO.class
+                );
+
+        //then
+        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+        ObjectMapper om = new ObjectMapper();
+        JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
+        Assertions.assertEquals("성공", jsonNode.get("msg").asText());
+    }
+
     @Nested
     @DisplayName("User 조회")
     class GetUsers{
