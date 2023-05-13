@@ -1,5 +1,6 @@
 package com.task.needmoretask.service;
 
+import com.task.needmoretask.core.exception.Exception403;
 import com.task.needmoretask.core.exception.Exception404;
 import com.task.needmoretask.dto.task.TaskRequest;
 import com.task.needmoretask.model.assign.AssignRepository;
@@ -131,19 +132,55 @@ class TaskServiceTest {
     @Nested
     @DisplayName("Task 삭제")
     class Delete {
-        @Test
+        @Nested
+        @DisplayName("실패")
+        class Fail{
+            @Test
+            @DisplayName("1: Task 없음")
+            void test1(){
+                //given
+                long taskId = 2;
+                //when then
+                Assertions.assertThrows(Exception404.class, () -> taskService.deleteTask(taskId,user));
+            }
+            @Test
+            @DisplayName("2: 권한 없음")
+            void test(){
+                //given
+                long taskId = 1;
+                User user1 = User.builder().id(2L).role(User.Role.USER).build();
+                //when then
+                Assertions.assertThrows(Exception403.class, () -> taskService.deleteTask(taskId,user1));
+            }
+        }
+        @Nested
         @DisplayName("성공")
-        void success(){
-            //given
-            long taskId = 1;
-            //when
-            taskService.deleteTask(taskId,user);
-            //then
-            verify(taskRepository,times(1)).findById(taskId);
-            verify(assignRepository,times(1)).findAssigneeByTaskId(taskId);
-            Assertions.assertDoesNotThrow(() -> taskService.deleteTask(taskId,user));
+        class Success{
+            @Test
+            @DisplayName("1: user 본인")
+            void success(){
+                //given
+                long taskId = 1;
+                //when
+                taskService.deleteTask(taskId,user);
+                //then
+                verify(taskRepository,times(1)).findById(taskId);
+                verify(assignRepository,times(1)).findAssigneeByTaskId(taskId);
+                Assertions.assertDoesNotThrow(() -> taskService.deleteTask(taskId,user));
+            }
+            @Test
+            @DisplayName("2: admin")
+            void test(){
+                //given
+                long taskId = 1;
+                User admin = User.builder().id(2L).role(User.Role.ADMIN).build();
+                //when
+                taskService.deleteTask(taskId,admin);
+                //then
+                verify(taskRepository,times(1)).findById(taskId);
+                verify(assignRepository,times(1)).findAssigneeByTaskId(taskId);
+                Assertions.assertDoesNotThrow(() -> taskService.deleteTask(taskId,admin));
+            }
         }
     }
-
-
 }
