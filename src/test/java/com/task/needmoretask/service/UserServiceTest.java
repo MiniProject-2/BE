@@ -501,4 +501,71 @@ class UserServiceTest {
             Assertions.assertDoesNotThrow(() -> userService.getAuth(user));
         }
     }
+
+    @Nested
+    @DisplayName("비밀번호 확인")
+    class Validate {
+
+        @Nested
+        @DisplayName("실패 케이스")
+        class Fail {
+            @Test
+            @DisplayName("1:해당유저 없음")
+            void noUser() {
+                //given
+                User user1 = User.builder()
+                        .id(2L)
+                        .build();
+                UserRequest.UserPasswordValidate userPasswordDto = UserRequest.UserPasswordValidate.builder()
+                        .password("hello1234")
+                        .passwordCheck("hello1234")
+                        .build();
+                //when
+                Assertions.assertThrows(Exception404.class, () -> userService.validatePassword(userPasswordDto, user1));
+            }
+
+            @Test
+            @DisplayName("2:passwordCheck() 실패")
+                //입력한 두값이 같지 않을때 실패 케이스
+            void passwordCheck() {
+                //given
+                UserRequest.UserPasswordValidate userPasswordDto = UserRequest.UserPasswordValidate.builder()
+                        .password("123456")
+                        .passwordCheck("1234567")
+                        .build();
+                //then
+                Assertions.assertThrows(Exception400.class, () -> userService.validatePassword(userPasswordDto, user));
+            }
+        }
+
+        @Test
+        @DisplayName("3:validatePassword() 실패")
+            //입력한 두값이 확인후 DB에 저장된 UserPassword 같지않을 경우
+        void validatePassword() {
+            //given
+            UserRequest.UserPasswordValidate userPasswordDto = UserRequest.UserPasswordValidate.builder()
+                    .password("hello123")
+                    .passwordCheck("hello123")
+                    .build();
+            //when
+            Exception400 failPassword = Assertions.assertThrows(Exception400.class, () -> userService.validatePassword(userPasswordDto, user));
+            //then
+            Assertions.assertThrows(Exception400.class, () -> userService.validatePassword(userPasswordDto, user));
+        }
+
+    }
+
+    @Test
+    @DisplayName("비밀번호 확인 성공")
+    void success() {
+        //given
+        UserRequest.UserPasswordValidate userPasswordDto = UserRequest.UserPasswordValidate.builder()
+                .password("123456")
+                .passwordCheck("123456")
+                .build();
+        //when then
+        Assertions.assertDoesNotThrow(() -> userService.validatePassword(userPasswordDto, user));
+    }
+
+
 }
