@@ -61,11 +61,11 @@ class UserServiceTest {
     private Profile profile;
     private final String path = "src/test/resources/images/";
     private String originalFilename = "default.jpeg";
-    private final Pageable pageable = PageRequest.of(0,10);
+    private final Pageable pageable = PageRequest.of(0, 10);
 
     @BeforeEach
     void setUp() throws IOException {
-        profile = Profile.builder().url(path+originalFilename).build();
+        profile = Profile.builder().url(path + originalFilename).build();
 
         user = User.builder()
                 .id(1L)
@@ -89,74 +89,76 @@ class UserServiceTest {
         lenient().when(userRepository.findUserByEmail(anyString()))
                 .thenAnswer(invocation -> {
                     String email = invocation.getArgument(0);
-                    if(!user.getEmail().equals(email)){
-                        if(email.equals("email2@email.com")) return Optional.empty();
+                    if (!user.getEmail().equals(email)) {
+                        if (email.equals("email2@email.com")) return Optional.empty();
                         throw new Exception401("로그인에 실패했습니다");
                     }
                     return Optional.of(user);
                 });
 
         lenient().when(userRepository.findAll(pageable))
-                .thenAnswer(invocation -> new PageImpl<>(List.of(user),pageable,1));
+                .thenAnswer(invocation -> new PageImpl<>(List.of(user), pageable, 1));
 
-        lenient().when(userRepository.findUsersByFullName(anyString(),any()))
+        lenient().when(userRepository.findUsersByFullName(anyString(), any()))
                 .thenAnswer(invocation -> {
                     String fullName = invocation.getArgument(0);
-                    if(user.getFullname().equals(fullName)) return new PageImpl<>(List.of(user),pageable,1);
+                    if (user.getFullname().equals(fullName)) return new PageImpl<>(List.of(user), pageable, 1);
                     return Optional.empty();
                 });
 
         lenient().when(passwordEncoder.matches(anyString(), anyString()))
                 .thenAnswer(invocation -> {
                     String password = invocation.getArgument(0);
-                    if(!user.getPassword().equals(password)) throw new Exception400("password", "비밀번호가 틀렸습니다");
+                    if (!user.getPassword().equals(password)) throw new Exception400("password", "비밀번호가 틀렸습니다");
                     return true;
                 });
 
-        lenient().when(s3Uploader.upload(any(),anyString()))
+        lenient().when(s3Uploader.upload(any(), anyString()))
                 .thenAnswer(invocation -> {
                     MultipartFile img = invocation.getArgument(0);
-                    if(img.isEmpty()) throw new Exception400("profile", "이미지가 전송되지 않았습니다");
-                    return path+originalFilename;
+                    if (img.isEmpty()) throw new Exception400("profile", "이미지가 전송되지 않았습니다");
+                    return path + originalFilename;
                 });
 
         lenient().when(profileRepository.findById(anyLong()))
                 .thenAnswer(invocation -> {
                     Long id = invocation.getArgument(0);
-                    if(!id.equals(1L) && !id.equals(2L)) throw new Exception404("프로필이 없습니다");
+                    if (!id.equals(1L) && !id.equals(2L)) throw new Exception404("프로필이 없습니다");
                     return Optional.of(profile);
                 });
     }
 
     @Nested
     @DisplayName("로그인")
-    class Login{
+    class Login {
         @Nested
         @DisplayName("실패")
-        class Fail{
+        class Fail {
             @Test
             @DisplayName("1: 없는 유저")
-            void test1(){
+            void test1() {
                 //given
                 UserRequest.Login request = UserRequest.Login.builder()
                         .email("test@email.com")
                         .password("123456")
                         .build();
                 //when
-                Assertions.assertThrows(Exception401.class, () -> userService.login(request,"",""));
+                Assertions.assertThrows(Exception401.class, () -> userService.login(request, "", ""));
             }
+
             @Test
             @DisplayName("2: 비밀번호 틀림")
-            void test2(){
+            void test2() {
                 //given
                 UserRequest.Login request = UserRequest.Login.builder()
                         .email(user.getEmail())
                         .password("000000")
                         .build();
                 //when
-                Assertions.assertThrows(Exception400.class, () -> userService.login(request,"",""));
+                Assertions.assertThrows(Exception400.class, () -> userService.login(request, "", ""));
             }
         }
+
         @Test
         @DisplayName("성공")
         void success() {
@@ -167,10 +169,10 @@ class UserServiceTest {
                     .password(pwd)
                     .build();
             //when
-            userService.login(request,"","");
+            userService.login(request, "", "");
             //then
             verify(userRepository, times(1)).findUserByEmail(user.getEmail());
-            verify(passwordEncoder, times(1)).matches(pwd,user.getPassword());
+            verify(passwordEncoder, times(1)).matches(pwd, user.getPassword());
             verify(logRepository, times(1)).findLogByEmail(user.getEmail());
             verify(myJwtProvider, times(1)).create(user);
             Assertions.assertDoesNotThrow(() -> userService.login(request, "", ""));
@@ -179,93 +181,95 @@ class UserServiceTest {
 
     @Nested
     @DisplayName("프로필 업로드")
-    class UploadProfile{
+    class UploadProfile {
         @Nested
         @DisplayName("실패")
-        class Fail{
+        class Fail {
             @Test
             @DisplayName("1: 확장자가 다름")
             void test1() throws IOException {
                 //given
                 originalFilename = "fail.txt";
                 String contentType = ContentType.TEXT_PLAIN.toString();
-                byte[] content = Files.readAllBytes(Paths.get(path+originalFilename));
-                MultipartFile image = new MockMultipartFile(originalFilename,originalFilename,contentType,content);
+                byte[] content = Files.readAllBytes(Paths.get(path + originalFilename));
+                MultipartFile image = new MockMultipartFile(originalFilename, originalFilename, contentType, content);
                 //when then
                 Assertions.assertThrows(Exception400.class, () -> userService.updateImage(image));
             }
         }
+
         @Test
         @DisplayName("성공")
         void success() throws IOException {
             //given
             String contentType = ContentType.IMAGE_JPEG.toString();
-            byte[] content = Files.readAllBytes(Paths.get(path+originalFilename));
-            MultipartFile image = new MockMultipartFile(originalFilename,originalFilename,contentType,content);
+            byte[] content = Files.readAllBytes(Paths.get(path + originalFilename));
+            MultipartFile image = new MockMultipartFile(originalFilename, originalFilename, contentType, content);
             //when
             userService.updateImage(image);
             //then
-            verify(s3Uploader,times(1)).upload(image,"images");
-            verify(profileRepository,times(1)).save(profile);
+            verify(s3Uploader, times(1)).upload(image, "images");
+            verify(profileRepository, times(1)).save(profile);
             Assertions.assertDoesNotThrow(() -> userService.updateImage(image));
         }
     }
 
     @Nested
     @DisplayName("유저 전체 조회")
-    class AllUsers{
+    class AllUsers {
         @Test
         @DisplayName("성공")
-        void success(){
+        void success() {
             //given
             //when
             userService.getAllUsers();
             //then
-            verify(userRepository,times(1)).findAll();
+            verify(userRepository, times(1)).findAll();
             Assertions.assertDoesNotThrow(() -> userService.getAllUsers());
         }
     }
 
     @Nested
     @DisplayName("유저 조회")
-    class Users{
+    class Users {
         @Nested
         @DisplayName("실패")
-        class Fail{
+        class Fail {
             @Test
             @DisplayName("1: param 잘못 전달됨")
-            void test1(){
+            void test1() {
                 //given
                 String role = "test";
                 //when then
-                Assertions.assertThrows(Exception400.class, () -> userService.getUsers(role,pageable));
+                Assertions.assertThrows(Exception400.class, () -> userService.getUsers(role, pageable));
             }
         }
+
         @Test
         @DisplayName("성공")
-        void success(){
+        void success() {
             //given
             String role = "all";
             //when
-            userService.getUsers(role,pageable);
+            userService.getUsers(role, pageable);
             //then
-            verify(userRepository,times(1)).findAll(pageable);
+            verify(userRepository, times(1)).findAll(pageable);
             Assertions.assertDoesNotThrow(() -> userService.getUsers(role, pageable));
         }
     }
 
     @Nested
     @DisplayName("유저 검색")
-    class SearchUsers{
+    class SearchUsers {
         @Test
         @DisplayName("성공")
-        void success(){
+        void success() {
             //given
             String fullName = user.getFullname();
             //when
-            userService.searchUsers(fullName,pageable);
+            userService.searchUsers(fullName, pageable);
             //then
-            verify(userRepository,times(1)).findUsersByFullName(fullName,pageable);
+            verify(userRepository, times(1)).findUsersByFullName(fullName, pageable);
             Assertions.assertDoesNotThrow(() -> userService.searchUsers(fullName, pageable));
         }
     }
@@ -347,7 +351,7 @@ class UserServiceTest {
 
             @Test
             @DisplayName("2: 프로필 없음")
-            void test(){
+            void test() {
                 //given
                 Long id = user.getId();
                 String password = user.getPassword();
@@ -367,7 +371,7 @@ class UserServiceTest {
 
             @Test
             @DisplayName("3: 권한 없음")
-            void test3(){
+            void test3() {
                 //given
                 User user1 = User.builder().id(2L).role(User.Role.USER).build();
                 String password = user.getPassword();
@@ -382,7 +386,7 @@ class UserServiceTest {
                         .profileId(profileId)
                         .build();
                 //when then
-                Assertions.assertThrows(Exception403.class, () -> userService.updateUserInfo(user.getId(),request,user1));
+                Assertions.assertThrows(Exception403.class, () -> userService.updateUserInfo(user.getId(), request, user1));
             }
         }
 
@@ -405,12 +409,13 @@ class UserServiceTest {
                         .profileId(profileId)
                         .build();
                 //when
-                userService.updateUserInfo(id,request,user);
+                userService.updateUserInfo(id, request, user);
                 //then
                 verify(passwordEncoder, times(0)).encode("");
                 verify(profileRepository, times(0)).findById(profileId);
                 Assertions.assertDoesNotThrow(() -> userService.updateUserInfo(id, request, user));
             }
+
             @Test
             @DisplayName("비밀번호 변경")
             void test2() {
@@ -428,12 +433,13 @@ class UserServiceTest {
                         .profileId(profileId)
                         .build();
                 //when
-                userService.updateUserInfo(id,request,user);
+                userService.updateUserInfo(id, request, user);
                 //then
                 verify(passwordEncoder, times(1)).encode(password);
                 verify(profileRepository, times(0)).findById(profileId);
                 Assertions.assertDoesNotThrow(() -> userService.updateUserInfo(id, request, user));
             }
+
             @Test
             @DisplayName("프로필 변경")
             void test3() {
@@ -450,12 +456,13 @@ class UserServiceTest {
                         .profileId(profileId)
                         .build();
                 //when
-                userService.updateUserInfo(id,request,user);
+                userService.updateUserInfo(id, request, user);
                 //then
                 verify(passwordEncoder, times(0)).encode("");
-                verify(profileRepository,times(1)).findById(profileId);
+                verify(profileRepository, times(1)).findById(profileId);
                 Assertions.assertDoesNotThrow(() -> userService.updateUserInfo(id, request, user));
             }
+
             @Test
             @DisplayName("비밀번호, 프로필 변경")
             void test4() {
@@ -473,7 +480,7 @@ class UserServiceTest {
                         .profileId(profileId)
                         .build();
                 //when
-                userService.updateUserInfo(id,request,user);
+                userService.updateUserInfo(id, request, user);
                 //then
                 verify(passwordEncoder, times(1)).encode(password);
                 verify(profileRepository, times(1)).findById(profileId);
@@ -484,23 +491,24 @@ class UserServiceTest {
 
     @Nested
     @DisplayName("정보 요청")
-    class GetAuth{
+    class GetAuth {
         @Test
         @DisplayName("실패: 유저가 다름")
-        void fail(){
+        void fail() {
             //given
             User user1 = User.builder().id(2L).build();
             //when then
             Assertions.assertThrows(Exception404.class, () -> userService.getAuth(user1));
         }
+
         @Test
         @DisplayName("성공")
-        void success(){
+        void success() {
             //given
             //when
             userService.getAuth(user);
             //then
-            verify(userRepository,times(1)).findById(user.getId());
+            verify(userRepository, times(1)).findById(user.getId());
             Assertions.assertDoesNotThrow(() -> userService.getAuth(user));
         }
     }
@@ -587,12 +595,89 @@ class UserServiceTest {
 
         @Test
         @DisplayName("이메일 중복되지않았을때")
-        void notDuplicatedEmail(){
+        void notDuplicatedEmail() {
             //given
-            UserRequest.UserEmailValidate emailCheck= new UserRequest.UserEmailValidate("email2@email.com");
+            UserRequest.UserEmailValidate emailCheck = new UserRequest.UserEmailValidate("email2@email.com");
 
             //then
             Assertions.assertDoesNotThrow(() -> userService.isDuplicatedId(emailCheck));
         }
+    }
+
+    @Nested
+    @DisplayName("개인권한 수정")
+    class UpdateRole {
+        @Nested
+        @DisplayName("실패")
+        class Fail {
+
+            @Test
+            @DisplayName("아이디가 없음")
+            void failTest1(){
+                //given
+                User user1 = User.builder()
+                        .id(4L)
+                        .email("email@email.com")
+                        .password("123456")
+                        .phone("010-0000-0000")
+                        .fullname("test")
+                        .department(User.Department.HR)
+                        .joinCompanyYear(2023)
+                        .profile(profile)
+                        .role(User.Role.ADMIN)
+                        .build();
+
+                UserRequest.updateRoleInDTO request = UserRequest.updateRoleInDTO.builder()
+                        .userId(6L)
+                        .role(User.Role.USER)
+                        .build();
+
+                //then
+                Assertions.assertThrows(Exception404.class, () -> userService.updateRole(user1, request));
+            }
+
+            @Test
+            @DisplayName("권한 없음")
+            void failTest2(){
+                //given
+                Long id = user.getId();
+                UserRequest.updateRoleInDTO request = UserRequest.updateRoleInDTO.builder()
+                        .userId(id)
+                        .role(User.Role.ADMIN)
+                        .build();
+
+                //then
+                Assertions.assertThrows(Exception403.class, () -> userService.updateRole(user, request));
+            }
+        }
+
+        @Test
+        @DisplayName("성공")
+        void Success() {
+            //given
+            User user1 = User.builder()
+                    .id(4L)
+                    .email("email@email.com")
+                    .password("123456")
+                    .phone("010-0000-0000")
+                    .fullname("test")
+                    .department(User.Department.HR)
+                    .joinCompanyYear(2023)
+                    .profile(profile)
+                    .role(User.Role.ADMIN)
+                    .build();
+
+            Long id = user.getId();
+            UserRequest.updateRoleInDTO request = UserRequest.updateRoleInDTO.builder()
+                    .userId(id)
+                    .role(User.Role.USER)
+                    .build();
+            //when
+            userService.updateRole(user1, request);
+            //then
+            verify(userRepository, times(1)).findById(id);
+            Assertions.assertDoesNotThrow(() -> userService.updateRole(user1, request));
+        }
+
     }
 }
