@@ -26,6 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.validation.Valid;
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -123,14 +124,14 @@ public class UserService {
 
     // 개인정보 조회
     public UserResponse.UserOut getUserInfo(Long id) {
-        User findUser = notFoundUser(id);
+        User findUser = notFoundUser(id,true);
         return new UserResponse.UserOut(findUser);
     }
 
     // 개인정보 수정
     @Transactional
     public UserResponse.UserOut updateUserInfo(Long id, UserRequest.UserIn userIn, User user) {
-        User findUser = notFoundUser(id);
+        User findUser = notFoundUser(id,false);
         forbiddenUser(findUser, user);
         if (!userIn.getPassword().isEmpty()){
             if(!Pattern.matches("^[a-zA-Z0-9.-]{6,16}$",userIn.getPassword()) && !Pattern.matches("^[a-zA-Z0-9.-]{6,16}$",userIn.getPasswordCheck())) throw new Exception400("password","비밀번호 형식이 잘못 되었습니다");
@@ -146,7 +147,7 @@ public class UserService {
 
     //비밀번호 확인
     public void validatePassword(UserRequest.@Valid UserPasswordValidate userPasswordDTO, User user){
-        User findUser = notFoundUser(user.getId());
+        User findUser = notFoundUser(user.getId(),false);
         passwordCheck(userPasswordDTO.getPassword(), userPasswordDTO.getPasswordCheck());
         // match 원본 비번가 암호된 비번이 같은건지 비교가능하게 해주는 메서드
         validatePassword(userPasswordDTO.getPassword(),findUser);
@@ -159,9 +160,7 @@ public class UserService {
 
     //정보 요청
     public UserResponse.UserOut getAuth(User user) {
-        User findUser = userRepository.findById(user.getId()).orElseThrow(
-                () -> new Exception401("잘못된 접근입니다")
-        );
+        User findUser = notFoundUser(user.getId(),true);
         return new UserResponse.UserOut(findUser);
     }
 
@@ -171,14 +170,16 @@ public class UserService {
         if (!loginUser.getRole().equals(User.Role.ADMIN))
             throw new Exception403("권한이 부족합니다");
 
-        User userPS = userRepository.findById(updateRoleInDTO.getUserId())
-                .orElseThrow(() -> new Exception400("userId", "잘못된 유저입니다"));
+        User userPS = notFoundUser(updateRoleInDTO.getUserId(),false);
 
         userPS.updateRole(updateRoleInDTO.getRole());
     }
 
-    private User notFoundUser(Long userId) {
-        return userRepository.findById(userId).orElseThrow(
+    private User notFoundUser(Long userId, boolean profile) {
+        Optional<User> user;
+        if(profile) user = userRepository.findByIdWithProfile(userId);
+        else user = userRepository.findById(userId);
+        return user.orElseThrow(
                 () -> new Exception404("해당 유저가 없습니다")
         );
     }
