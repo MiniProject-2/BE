@@ -86,6 +86,13 @@ class UserServiceTest {
                     return Optional.of(user);
                 });
 
+        lenient().when(userRepository.findByIdWithProfile(anyLong()))
+                .thenAnswer(invocation -> {
+                    Long userId = invocation.getArgument(0);
+                    if (!user.getId().equals(userId)) throw new Exception404("유저를 찾을 수 없습니다");
+                    return Optional.of(user);
+                });
+
         lenient().when(userRepository.findUserByEmail(anyString()))
                 .thenAnswer(invocation -> {
                     String email = invocation.getArgument(0);
@@ -97,6 +104,9 @@ class UserServiceTest {
                 });
 
         lenient().when(userRepository.findAll(pageable))
+                .thenAnswer(invocation -> new PageImpl<>(List.of(user), pageable, 1));
+
+        lenient().when(userRepository.findAllByRole(User.Role.USER,pageable))
                 .thenAnswer(invocation -> new PageImpl<>(List.of(user), pageable, 1));
 
         lenient().when(userRepository.findUsersByFullName(anyString(), any()))
@@ -287,7 +297,7 @@ class UserServiceTest {
         }
 
         @Test
-        @DisplayName("성공")
+        @DisplayName("성공: all")
         void success() {
             //given
             String role = "all";
@@ -295,6 +305,18 @@ class UserServiceTest {
             userService.getUsers(role, pageable);
             //then
             verify(userRepository, times(1)).findAll(pageable);
+            Assertions.assertDoesNotThrow(() -> userService.getUsers(role, pageable));
+        }
+
+        @Test
+        @DisplayName("성공: user")
+        void success2() {
+            //given
+            String role = "user";
+            //when
+            userService.getUsers(role, pageable);
+            //then
+            verify(userRepository, times(1)).findAllByRole(User.Role.USER,pageable);
             Assertions.assertDoesNotThrow(() -> userService.getUsers(role, pageable));
         }
     }
@@ -335,7 +357,7 @@ class UserServiceTest {
             //when
             userService.getUserInfo(id);
             //then
-            verify(userRepository, times(1)).findById(id);
+            verify(userRepository, times(1)).findByIdWithProfile(id);
             Assertions.assertDoesNotThrow(() -> userService.getUserInfo(id));
         }
     }
@@ -549,7 +571,7 @@ class UserServiceTest {
             //when
             userService.getAuth(user);
             //then
-            verify(userRepository, times(1)).findById(user.getId());
+            verify(userRepository, times(1)).findByIdWithProfile(user.getId());
             Assertions.assertDoesNotThrow(() -> userService.getAuth(user));
         }
     }
