@@ -129,6 +129,47 @@ class UserServiceTest {
     }
 
     @Nested
+    @DisplayName("회원가입")
+    class join{
+        @Nested
+        @DisplayName("실패")
+        class Fail{
+            @Test
+            @DisplayName("1: 이메일 중복")
+            void test1(){
+                //given
+                UserRequest.JoinIn request= UserRequest.JoinIn.builder()
+                        .email(user.getEmail())
+                        .build();
+
+                //when
+                Assertions.assertThrows(Exception400.class, () -> userService.join(request));
+            }
+            @Test
+            @DisplayName("2: 프로필 없음")
+            void test2(){
+                //given
+           UserRequest.JoinIn request =UserRequest.JoinIn.builder()
+                   .profileId(3L)
+                   .build();
+                //when
+                Assertions.assertThrows(Exception404.class, () -> userService.join(request));
+            }
+        }
+        @Test
+        @DisplayName("성공")
+        void success(){
+            //given
+            UserRequest.JoinIn request =UserRequest.JoinIn.builder()
+                    .email("email2@email.com")
+                    .profileId(2L)
+                    .build();
+            //when
+            Assertions.assertDoesNotThrow(() -> userService.join(request));
+        }
+    }
+
+    @Nested
     @DisplayName("로그인")
     class Login {
         @Nested
