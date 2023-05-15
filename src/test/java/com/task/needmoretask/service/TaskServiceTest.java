@@ -69,8 +69,8 @@ class TaskServiceTest {
                 });
         task = Task.builder()
                 .id(1L)
-                .startAt(LocalDate.of(2023,4,1))
-                .endAt(LocalDate.of(2023,5,1))
+                .startAt(LocalDate.of(2023, 4, 1))
+                .endAt(LocalDate.of(2023, 5, 1))
                 .title("title")
                 .description("description")
                 .priority(Task.Priority.LOW)
@@ -93,6 +93,7 @@ class TaskServiceTest {
 
         lenient().when(taskJPQLRepository.findLatestTasks())
                 .thenReturn(List.of(task));
+
 
     }
 
@@ -128,9 +129,9 @@ class TaskServiceTest {
             TaskRequest request = getTaskrequest(user.getId());
             List<Assignment> assignments = request.getAssignee().stream()
                     .map(assign -> Assignment.builder()
-                                .task(request.toEntity(user))
-                                .user(user)
-                                .build())
+                            .task(request.toEntity(user))
+                            .user(user)
+                            .build())
                     .collect(Collectors.toList());
             //when
             taskService.createTask(request, user);
@@ -142,68 +143,72 @@ class TaskServiceTest {
 
     @Nested
     @DisplayName("Task 수정")
-    class Update{
+    class Update {
         @Nested
         @DisplayName("실패")
-        class Fail{
+        class Fail {
             @Test
             @DisplayName("1: Task 없음")
-            void test1(){
+            void test1() {
                 //given
                 long taskId = 2;
                 TaskRequest request = getTaskrequest(1L);
                 //when then
-                Assertions.assertThrows(Exception404.class, () -> taskService.updateTask(taskId,request,user));
+                Assertions.assertThrows(Exception404.class, () -> taskService.updateTask(taskId, request, user));
             }
+
             @Test
             @DisplayName("2: 권한 없음")
-            void test2(){
+            void test2() {
                 //given
                 long taskId = 1;
                 User user1 = User.builder().id(2L).role(User.Role.USER).build();
                 TaskRequest request = getTaskrequest(1L);
                 //when then
-                Assertions.assertThrows(Exception403.class, () -> taskService.updateTask(taskId,request,user1));
+                Assertions.assertThrows(Exception403.class, () -> taskService.updateTask(taskId, request, user1));
             }
+
             @Test
             @DisplayName("3: Assignee 유저를 찾을 수 없음")
-            void test(){
+            void test() {
                 //given
                 long taskId = 1;
                 TaskRequest request = getTaskrequest(2L);
                 //when then
-                Assertions.assertThrows(Exception404.class, () -> taskService.updateTask(taskId,request,user));
+                Assertions.assertThrows(Exception404.class, () -> taskService.updateTask(taskId, request, user));
             }
         }
+
         @Nested
         @DisplayName("성공")
-        class Success{
+        class Success {
             @Test
             @DisplayName("1: user 본인")
-            void test1(){
+            void test1() {
                 //given
                 long taskId = 1;
                 TaskRequest request = getTaskrequest(1L);
                 //when
-                taskService.updateTask(taskId,request,user);
+                taskService.updateTask(taskId, request, user);
                 //then
-                verify(taskRepository,times(1)).findById(taskId);
-                verify(assignRepository,times(1)).findAssigneeByTaskId(taskId);
-                Assertions.assertDoesNotThrow(() -> taskService.updateTask(taskId,request,user));
+                verify(taskRepository, times(1)).findById(taskId);
+                verify(assignRepository, times(1)).findAssigneeByTaskId(taskId);
+                Assertions.assertDoesNotThrow(() -> taskService.updateTask(taskId, request, user));
             }
+
             @Test
             @DisplayName("2: admin")
-            void test2(){
+            void test2() {
                 //given
                 long taskId = 1;
                 User admin = User.builder().id(2L).role(User.Role.ADMIN).build();
                 TaskRequest request = getTaskrequest(1L);
                 //when
-                taskService.updateTask(taskId,request,admin);
+                taskService.updateTask(taskId, request, admin);
                 //then
-                verify(taskRepository,times(1)).findById(taskId);
-                verify(assignRepository,times(1)).findAssigneeByTaskId(taskId);
-                Assertions.assertDoesNotThrow(() -> taskService.updateTask(taskId,request,admin));
+                verify(taskRepository, times(1)).findById(taskId);
+                verify(assignRepository, times(1)).findAssigneeByTaskId(taskId);
+                Assertions.assertDoesNotThrow(() -> taskService.updateTask(taskId, request, admin));
             }
         }
     }
@@ -213,104 +218,108 @@ class TaskServiceTest {
     class Delete {
         @Nested
         @DisplayName("실패")
-        class Fail{
+        class Fail {
             @Test
             @DisplayName("1: Task 없음")
-            void test1(){
+            void test1() {
                 //given
                 long taskId = 2;
                 //when then
-                Assertions.assertThrows(Exception404.class, () -> taskService.deleteTask(taskId,user));
+                Assertions.assertThrows(Exception404.class, () -> taskService.deleteTask(taskId, user));
             }
+
             @Test
             @DisplayName("2: 권한 없음")
-            void test(){
+            void test() {
                 //given
                 long taskId = 1;
                 User user1 = User.builder().id(2L).role(User.Role.USER).build();
                 //when then
-                Assertions.assertThrows(Exception403.class, () -> taskService.deleteTask(taskId,user1));
+                Assertions.assertThrows(Exception403.class, () -> taskService.deleteTask(taskId, user1));
             }
         }
+
         @Nested
         @DisplayName("성공")
-        class Success{
+        class Success {
             @Test
             @DisplayName("1: user 본인")
-            void success(){
+            void success() {
                 //given
                 long taskId = 1;
                 //when
-                taskService.deleteTask(taskId,user);
+                taskService.deleteTask(taskId, user);
                 //then
-                verify(taskRepository,times(1)).findById(taskId);
-                verify(assignRepository,times(1)).findAssigneeByTaskId(taskId);
-                Assertions.assertDoesNotThrow(() -> taskService.deleteTask(taskId,user));
+                verify(taskRepository, times(1)).findById(taskId);
+                verify(assignRepository, times(1)).findAssigneeByTaskId(taskId);
+                Assertions.assertDoesNotThrow(() -> taskService.deleteTask(taskId, user));
             }
+
             @Test
             @DisplayName("2: admin")
-            void test(){
+            void test() {
                 //given
                 long taskId = 1;
                 User admin = User.builder().id(2L).role(User.Role.ADMIN).build();
                 //when
-                taskService.deleteTask(taskId,admin);
+                taskService.deleteTask(taskId, admin);
                 //then
-                verify(taskRepository,times(1)).findById(taskId);
-                verify(assignRepository,times(1)).findAssigneeByTaskId(taskId);
-                Assertions.assertDoesNotThrow(() -> taskService.deleteTask(taskId,admin));
+                verify(taskRepository, times(1)).findById(taskId);
+                verify(assignRepository, times(1)).findAssigneeByTaskId(taskId);
+                Assertions.assertDoesNotThrow(() -> taskService.deleteTask(taskId, admin));
             }
         }
     }
 
     @Nested
     @DisplayName("Task 상세보기")
-    class Detail{
+    class Detail {
         @Test
         @DisplayName("실패: Task 없음")
-        void test(){
+        void test() {
             //given
             long taskId = 2;
             //when then
             Assertions.assertThrows(Exception404.class, () -> taskService.getDetailTask(taskId));
         }
+
         @Test
         @DisplayName("성공")
-        void success(){
+        void success() {
             //given
             long taskId = 1;
             //when
             taskService.getDetailTask(taskId);
             //then
-            verify(taskRepository,times(1)).findById(taskId);
-            verify(assignRepository,times(1)).findAssigneeByTaskId(taskId);
+            verify(taskRepository, times(1)).findById(taskId);
+            verify(assignRepository, times(1)).findAssigneeByTaskId(taskId);
             Assertions.assertDoesNotThrow(() -> taskService.getDetailTask(taskId));
         }
     }
 
     @Nested
     @DisplayName("Task 최근 생성 7개만 가져오기")
-    class LatestTasks{
+    class LatestTasks {
 
         @Test
         @DisplayName("성공")
-        void success(){
+        void success() {
             //when
             taskService.getLatestTasks();
 
-            verify(taskJPQLRepository,times(1)).findLatestTasks();
-            verify(assignRepository,times(1)).findAssigneeByTaskId(1L);
+            verify(taskJPQLRepository, times(1)).findLatestTasks();
+            verify(assignRepository, times(1)).findAssigneeByTaskId(1L);
             Assertions.assertDoesNotThrow(() -> taskService.getLatestTasks());
         }
     }
 
     @Nested
     @DisplayName("[Dashboard] Perfomance(최근 2주동안의) data")
-    class Perfomance{
+    class Perfomance {
 
         @Test
         @DisplayName("성공")
-        void success(){
+        void success() {
             //given
             date = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS)
                     .plusDays(1).minusNanos(1).minusWeeks(2);
@@ -329,9 +338,9 @@ class TaskServiceTest {
             taskService.getPerfomance();
 
             //then
-            verify(taskJPQLRepository,times(1)).findTasksByDate(date);
-            verify(assignRepository,times(14)).findAssignCountByTaskId(1L);
-            verify(taskJPQLRepository,times(1)).findDoneCountByDate(date);
+            verify(taskJPQLRepository, times(1)).findTasksByDate(date);
+            verify(assignRepository, times(14)).findAssignCountByTaskId(1L);
+            verify(taskJPQLRepository, times(1)).findDoneCountByDate(date);
             Assertions.assertDoesNotThrow(() -> taskService.getPerfomance());
         }
     }
@@ -339,11 +348,11 @@ class TaskServiceTest {
 
     @Nested
     @DisplayName("[DashBoard] 최근 1주일간의 통계 데이터")
-    class Progress{
+    class Progress {
 
         @Test
         @DisplayName("성공")
-        void success(){
+        void success() {
             //given
             date = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS)
                     .plusDays(1).minusNanos(1).minusWeeks(1);
@@ -364,10 +373,38 @@ class TaskServiceTest {
             taskService.getProgress();
 
             //then
-            verify(taskJPQLRepository,times(1)).findCountByProgressTime(Task.Progress.DONE, date);
-            verify(taskJPQLRepository,times(1)).findCountByProgressTime(Task.Progress.TODO, date);
-            verify(taskJPQLRepository,times(1)).findCountByProgressTime(Task.Progress.IN_PROGRESS, date);
+            verify(taskJPQLRepository, times(1)).findCountByProgressTime(Task.Progress.DONE, date);
+            verify(taskJPQLRepository, times(1)).findCountByProgressTime(Task.Progress.TODO, date);
+            verify(taskJPQLRepository, times(1)).findCountByProgressTime(Task.Progress.IN_PROGRESS, date);
             Assertions.assertDoesNotThrow(() -> taskService.getProgress());
         }
     }
+
+    @Nested
+    @DisplayName("[Kanban] 내가 속한 Task 가져오기")
+    class Kanban {
+
+        @Test
+        @DisplayName("성공")
+        void success() {
+            //given
+            long userId = 1L;
+            long taskId = 1L;
+
+            lenient().when(taskJPQLRepository.findTasksByUserId(userId))
+                    .thenReturn(List.of(task));
+
+            //when
+            taskService.getKanban(userId);
+
+            //then
+            verify(taskJPQLRepository, times(1)).findTasksByUserId(userId);
+            verify(assignRepository, times(1)).findAssignTaskByUserId(userId);
+            verify(assignRepository, times(1)).findAssigneeByTaskId(taskId);
+            Assertions.assertDoesNotThrow(() -> taskService.getKanban(userId));
+        }
+    }
+
+
+
 }
