@@ -405,6 +405,30 @@ class TaskServiceTest {
         }
     }
 
+    @Nested
+    @DisplayName("[Calendar] 조회")
+    class Calendar {
 
+        @Test
+        @DisplayName("성공")
+        void success() {
+            //given
+            long taskId = 1L;
+            int year = 2023;
+            int month = 4;
+            LocalDate date = LocalDate.of(year, month, 1);
+
+            lenient().when(taskJPQLRepository.findTaskByStartEndDate(date))
+                    .thenReturn(List.of(task));
+
+            //when
+            taskService.getCalendar(year, month);
+
+            //then
+            verify(taskJPQLRepository, times(1)).findTaskByStartEndDate(date);
+            verify(assignRepository, times(1)).findAssigneeByTaskId(taskId);
+            Assertions.assertDoesNotThrow(() -> taskService.getCalendar(year, month));
+        }
+    }
 
 }
