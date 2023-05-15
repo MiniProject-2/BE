@@ -1,6 +1,5 @@
 package com.task.needmoretask.model.task;
 
-import com.task.needmoretask.model.user.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,11 +10,8 @@ import java.time.LocalDate;
 import java.util.Optional;
 
 public interface TaskRepository extends JpaRepository<Task,Long> {
-    @Query("select t from Task t join fetch t.user u where t.id=:id and t.isDeleted=false")
+    @Query("select t from Task t join fetch t.user u join fetch u.profile p where t.id=:id and t.isDeleted=false")
     Optional<Task> findById(@Param("id") Long id);
-
-    @Query("select u from User u where u.role=:role and u.isDeleted=false")
-    Page<User> findAllByRole(@Param("role") User.Role role, Pageable pageable);
 
     @Query(value = "select t " +
             "from Task t " +
