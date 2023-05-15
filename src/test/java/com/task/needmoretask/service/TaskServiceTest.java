@@ -17,6 +17,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
@@ -416,19 +418,45 @@ class TaskServiceTest {
             long taskId = 1L;
             int year = 2023;
             int month = 4;
-            LocalDate date = LocalDate.of(year, month, 1);
+            LocalDate lDate = LocalDate.of(year, month, 1);
 
-            lenient().when(taskJPQLRepository.findTaskByStartEndDate(date))
+            lenient().when(taskJPQLRepository.findTaskByStartEndDate(lDate))
                     .thenReturn(List.of(task));
 
             //when
             taskService.getCalendar(year, month);
 
             //then
-            verify(taskJPQLRepository, times(1)).findTaskByStartEndDate(date);
+            verify(taskJPQLRepository, times(1)).findTaskByStartEndDate(lDate);
             verify(assignRepository, times(1)).findAssigneeByTaskId(taskId);
             Assertions.assertDoesNotThrow(() -> taskService.getCalendar(year, month));
         }
     }
+
+    @Nested
+    @DisplayName("Overview Daily")
+    class DailyTasks {
+
+        @Test
+        @DisplayName("성공")
+        void success() {
+            //given
+            long taskId = 1L;
+            LocalDate lDate = LocalDate.of(2023, 4, 1);
+            Pageable pageable = PageRequest.of(0,10);
+
+            lenient().when(taskRepository.findByDate(lDate, pageable))
+                    .thenReturn(new PageImpl<>(List.of(task),pageable,1));
+
+            //when
+            taskService.getDailyTasks(lDate, pageable);
+
+            //then
+            verify(taskRepository, times(1)).findByDate(lDate, pageable);
+            verify(assignRepository, times(1)).findAssigneeByTaskId(taskId);
+            Assertions.assertDoesNotThrow(() -> taskService.getDailyTasks(lDate, pageable));
+        }
+    }
+
 
 }
