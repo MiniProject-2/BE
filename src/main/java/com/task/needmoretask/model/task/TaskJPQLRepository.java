@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -151,6 +152,21 @@ public class TaskJPQLRepository {
                         .setParameter("endDate" , endDate);
 
         return query.getResultList();
+    }
+
+    public Long[] countByProgress(){
+        String nativeQuery = "SELECT (SELECT COUNT(*) FROM task_tb t WHERE t.progress='TODO') AS TODO_CNT, "
+                + "(SELECT COUNT(*) FROM task_tb t WHERE t.progress='IN_PROGRESS') AS IN_PROGRESS_CNT, "
+                + "(SELECT COUNT(*) FROM task_tb t WHERE t.progress='DONE') AS DONE_CNT";
+
+        Query query = em.createNativeQuery(nativeQuery);
+
+        Object[] result = (Object[]) query.getSingleResult();
+
+        Long todoCount = ((Number) result[0]).longValue();
+        Long inProgressCount = ((Number) result[1]).longValue();
+        Long doneCount = ((Number) result[2]).longValue();
+        return  new Long[]{todoCount,inProgressCount,doneCount};
     }
 
 }
