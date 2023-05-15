@@ -567,5 +567,33 @@ class UserServiceTest {
         Assertions.assertDoesNotThrow(() -> userService.validatePassword(userPasswordDto, user));
     }
 
+    @Nested
+    @DisplayName("이메일 중복확인")
+    class isDuplicatedId {
+
+        @Test
+        @DisplayName("이메일 중복되었을때")
+        void duplicatedEmail() {
+            //given
+            String email = "email@email.com";
+            UserRequest.UserEmailValidate emailCheck = UserRequest.UserEmailValidate.builder()
+                    .email(email)
+                    .build();
+            //then
+            Assertions.assertThrows(Exception400.class, () -> userService.isDuplicatedId(emailCheck));
+        }
+
+        @Test
+        @DisplayName("이메일 중복되지않았을때")
+        void notDuplicatedEmail(){
+            //given
+            UserRequest.UserEmailValidate emailCheck= new UserRequest.UserEmailValidate("email2@email.com");
+
+            //then
+            Assertions.assertDoesNotThrow(() -> userService.isDuplicatedId(emailCheck));
+        }
+
+    }
+
 
 }
