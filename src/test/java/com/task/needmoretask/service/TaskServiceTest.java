@@ -16,8 +16,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -78,6 +80,13 @@ class TaskServiceTest {
                     if (!task.getId().equals(taskId)) throw new Exception404("Task를 찾을 수 없습니다");
                     return Optional.of(task);
                 });
+
+
+        lenient().when(taskJPQLRepository.findLatestTasks())
+                .thenReturn(List.of(task));
+
+//        lenient().when(assignRepository.findAssigneeByTaskId(task.getId()))
+//                .thenReturn(Optional.of(List.of()));
     }
 
     TaskRequest getTaskrequest(Long assignId) {
@@ -271,4 +280,22 @@ class TaskServiceTest {
             Assertions.assertDoesNotThrow(() -> taskService.getDetailTask(taskId));
         }
     }
+
+    @Nested
+    @DisplayName("Task 최근 생성 7개만 가져오기")
+    class LatestTasks{
+
+        @Test
+        @DisplayName("성공")
+        void success(){
+            //when
+            taskService.getLatestTasks();
+
+            verify(taskJPQLRepository,times(1)).findLatestTasks();
+            verify(assignRepository,times(1)).findAssigneeByTaskId(1L);
+            Assertions.assertDoesNotThrow(() -> taskService.getLatestTasks());
+        }
+    }
+
+
 }
