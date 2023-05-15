@@ -45,7 +45,7 @@ public class UserController {
 
     //프로필 업로드
     @PostMapping(value = "/user/profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> updateImage(@RequestParam(value = "profileImage") MultipartFile image) throws IOException {
+    public ResponseEntity<?> updateImage(@RequestPart(value = "profileImage") MultipartFile image) throws IOException {
         UserResponse.ProfileOut url = userService.updateImage(image);
         return ResponseEntity.ok().body(new ResponseDTO<>(url));
     }
