@@ -88,6 +88,8 @@ class TaskServiceTest {
         lenient().when(taskJPQLRepository.findLatestTasks())
                 .thenReturn(List.of(task));
 
+        lenient().when(taskJPQLRepository.countByProgress())
+                .thenReturn(new Long[]{3L, 1L, 4L});
 
     }
 
