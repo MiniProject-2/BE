@@ -19,6 +19,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 
 import java.time.LocalDate;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -44,6 +46,7 @@ class TaskServiceTest {
 
     private User user;
     private Task task;
+    private ZonedDateTime date;
 
     @BeforeEach
     void setUp() {
@@ -81,12 +84,16 @@ class TaskServiceTest {
                     return Optional.of(task);
                 });
 
+//        Assignment assignment = Assignment.builder()
+//                        .task(task)
+//                        .user(user)
+//                        .build();
+//        lenient().when(assignRepository.findAssigneeByTaskId(task.getId()))
+//                .thenReturn(Optional.of(List.of(assignment)));
 
         lenient().when(taskJPQLRepository.findLatestTasks())
                 .thenReturn(List.of(task));
 
-//        lenient().when(assignRepository.findAssigneeByTaskId(task.getId()))
-//                .thenReturn(Optional.of(List.of()));
     }
 
     TaskRequest getTaskrequest(Long assignId) {
@@ -297,5 +304,70 @@ class TaskServiceTest {
         }
     }
 
+    @Nested
+    @DisplayName("[Dashboard] Perfomance(최근 2주동안의) data")
+    class Perfomance{
 
+        @Test
+        @DisplayName("성공")
+        void success(){
+            //given
+            date = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS)
+                    .plusDays(1).minusNanos(1).minusWeeks(2);
+
+            for (int i = 0; i < 14; i++) {
+                date = date.plusDays(1);
+
+                lenient().when(taskJPQLRepository.findTasksByDate(date))
+                        .thenReturn(List.of(task));
+
+                lenient().when(taskJPQLRepository.findDoneCountByDate(date))
+                        .thenReturn(1);
+            }
+
+            //when
+            taskService.getPerfomance();
+
+            //then
+            verify(taskJPQLRepository,times(1)).findTasksByDate(date);
+            verify(assignRepository,times(14)).findAssignCountByTaskId(1L);
+            verify(taskJPQLRepository,times(1)).findDoneCountByDate(date);
+            Assertions.assertDoesNotThrow(() -> taskService.getPerfomance());
+        }
+    }
+
+
+    @Nested
+    @DisplayName("[DashBoard] 최근 1주일간의 통계 데이터")
+    class Progress{
+
+        @Test
+        @DisplayName("성공")
+        void success(){
+            //given
+            date = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS)
+                    .plusDays(1).minusNanos(1).minusWeeks(1);
+
+            for (int i = 0; i < 7; i++) {
+                date = date.plusDays(1);
+
+                lenient().when(taskJPQLRepository.findCountByProgressTime(Task.Progress.DONE, date))
+                        .thenReturn(1);
+                lenient().when(taskJPQLRepository.findCountByProgressTime(Task.Progress.TODO, date))
+                        .thenReturn(2);
+                lenient().when(taskJPQLRepository.findCountByProgressTime(Task.Progress.IN_PROGRESS, date))
+                        .thenReturn(3);
+
+            }
+
+            //when
+            taskService.getProgress();
+
+            //then
+            verify(taskJPQLRepository,times(1)).findCountByProgressTime(Task.Progress.DONE, date);
+            verify(taskJPQLRepository,times(1)).findCountByProgressTime(Task.Progress.TODO, date);
+            verify(taskJPQLRepository,times(1)).findCountByProgressTime(Task.Progress.IN_PROGRESS, date);
+            Assertions.assertDoesNotThrow(() -> taskService.getProgress());
+        }
+    }
 }
