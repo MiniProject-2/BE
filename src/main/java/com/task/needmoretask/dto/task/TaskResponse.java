@@ -360,10 +360,16 @@ public class TaskResponse {
     public static class DailyTasksOutDTO {
         private List<DailyTasks> tasks;
         private Long totalCount;
+        private Long todoCount;
+        private Long inProgressCount;
+        private Long doneCount;
 
-        public DailyTasksOutDTO(List<DailyTasks> tasks, Long totalCount) {
+        public DailyTasksOutDTO(List<DailyTasks> tasks, Long totalCount, Long[] count) {
             this.tasks = tasks;
             this.totalCount = totalCount;
+            this.todoCount = count[0];
+            this.inProgressCount = count[1];
+            this.doneCount = count[2];
         }
 
         @Getter

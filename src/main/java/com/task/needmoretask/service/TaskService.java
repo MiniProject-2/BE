@@ -286,6 +286,7 @@ public class TaskService {
     // Overview Daily
     public TaskResponse.DailyTasksOutDTO getDailyTasks(LocalDate date, Pageable pageable) {
         Page<Task> tasksPS = taskRepository.findByDate(date, pageable);
+        Long[] count = taskJPQLRepository.countByProgress();
 
         List<TaskResponse.DailyTasksOutDTO.DailyTasks> responseList = new ArrayList<>();
 
@@ -300,7 +301,7 @@ public class TaskService {
             responseList.add(dailyTasksOutDTO);
         }
 
-        TaskResponse.DailyTasksOutDTO response = new TaskResponse.DailyTasksOutDTO(responseList, tasksPS.getTotalElements());
+        TaskResponse.DailyTasksOutDTO response = new TaskResponse.DailyTasksOutDTO(responseList, tasksPS.getTotalElements(), count);
 
         return response;
     }
@@ -308,6 +309,7 @@ public class TaskService {
     public TaskResponse.DailyTasksOutDTO getPickedTasks(LocalDate startDate, LocalDate endDate, Pageable pageable){
 
         Page<Task> tasksPS = taskRepository.findTasksByBetweenDate(startDate, endDate, pageable);
+        Long[] count = taskJPQLRepository.countByProgress();
 
         List<TaskResponse.DailyTasksOutDTO.DailyTasks> responseList = new ArrayList<>();
 
@@ -322,7 +324,7 @@ public class TaskService {
             responseList.add(dailyTasksOutDTO);
         }
 
-        TaskResponse.DailyTasksOutDTO response = new TaskResponse.DailyTasksOutDTO(responseList, tasksPS.getTotalElements());
+        TaskResponse.DailyTasksOutDTO response = new TaskResponse.DailyTasksOutDTO(responseList, tasksPS.getTotalElements(), count);
 
         return response;
 
