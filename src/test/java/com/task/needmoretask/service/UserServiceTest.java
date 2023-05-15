@@ -89,7 +89,10 @@ class UserServiceTest {
         lenient().when(userRepository.findUserByEmail(anyString()))
                 .thenAnswer(invocation -> {
                     String email = invocation.getArgument(0);
-                    if(!user.getEmail().equals(email)) throw new Exception401("로그인에 실패했습니다");
+                    if(!user.getEmail().equals(email)){
+                        if(email.equals("email2@email.com")) return Optional.empty();
+                        throw new Exception401("로그인에 실패했습니다");
+                    }
                     return Optional.of(user);
                 });
 
@@ -536,35 +539,34 @@ class UserServiceTest {
                 //then
                 Assertions.assertThrows(Exception400.class, () -> userService.validatePassword(userPasswordDto, user));
             }
+
+            @Test
+            @DisplayName("3:validatePassword() 실패")
+                //입력한 두값이 확인후 DB에 저장된 UserPassword 같지않을 경우
+            void validatePassword() {
+                //given
+                UserRequest.UserPasswordValidate userPasswordDto = UserRequest.UserPasswordValidate.builder()
+                        .password("hello123")
+                        .passwordCheck("hello123")
+                        .build();
+                //when
+                Exception400 failPassword = Assertions.assertThrows(Exception400.class, () -> userService.validatePassword(userPasswordDto, user));
+                //then
+                Assertions.assertThrows(Exception400.class, () -> userService.validatePassword(userPasswordDto, user));
+            }
         }
 
         @Test
-        @DisplayName("3:validatePassword() 실패")
-            //입력한 두값이 확인후 DB에 저장된 UserPassword 같지않을 경우
-        void validatePassword() {
+        @DisplayName("비밀번호 확인 성공")
+        void success() {
             //given
             UserRequest.UserPasswordValidate userPasswordDto = UserRequest.UserPasswordValidate.builder()
-                    .password("hello123")
-                    .passwordCheck("hello123")
+                    .password("123456")
+                    .passwordCheck("123456")
                     .build();
-            //when
-            Exception400 failPassword = Assertions.assertThrows(Exception400.class, () -> userService.validatePassword(userPasswordDto, user));
-            //then
-            Assertions.assertThrows(Exception400.class, () -> userService.validatePassword(userPasswordDto, user));
+            //when then
+            Assertions.assertDoesNotThrow(() -> userService.validatePassword(userPasswordDto, user));
         }
-
-    }
-
-    @Test
-    @DisplayName("비밀번호 확인 성공")
-    void success() {
-        //given
-        UserRequest.UserPasswordValidate userPasswordDto = UserRequest.UserPasswordValidate.builder()
-                .password("123456")
-                .passwordCheck("123456")
-                .build();
-        //when then
-        Assertions.assertDoesNotThrow(() -> userService.validatePassword(userPasswordDto, user));
     }
 
     @Nested
@@ -592,8 +594,5 @@ class UserServiceTest {
             //then
             Assertions.assertDoesNotThrow(() -> userService.isDuplicatedId(emailCheck));
         }
-
     }
-
-
 }
