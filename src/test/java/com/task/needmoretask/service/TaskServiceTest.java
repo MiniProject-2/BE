@@ -458,5 +458,30 @@ class TaskServiceTest {
         }
     }
 
+    @Nested
+    @DisplayName("Overview Period")
+    class PickedTasks {
+
+        @Test
+        @DisplayName("성공")
+        void success() {
+            //given
+            long taskId = 1L;
+            LocalDate startDate = LocalDate.of(2023, 4, 1);
+            LocalDate endDate = LocalDate.of(2023, 4, 4);
+            Pageable pageable = PageRequest.of(0,10);
+
+            lenient().when(taskRepository.findTasksByBetweenDate(startDate, endDate, pageable))
+                    .thenReturn(new PageImpl<>(List.of(task),pageable,1));
+
+            //when
+            taskService.getPickedTasks(startDate, endDate, pageable);
+
+            //then
+            verify(taskRepository, times(1)).findTasksByBetweenDate(startDate, endDate, pageable);
+            verify(assignRepository, times(1)).findAssigneeByTaskId(taskId);
+            Assertions.assertDoesNotThrow(() -> taskService.getPickedTasks(startDate, endDate, pageable));
+        }
+    }
 
 }
