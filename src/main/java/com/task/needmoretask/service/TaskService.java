@@ -170,8 +170,6 @@ public class TaskService {
             date = date.plusDays(1);
             List<Task> tasksPS = taskJPQLRepository.findTasksByDate(date);
 
-            System.out.println(tasksPS.size());
-
             int assignNullSize = 0;
             for (int j = 0; j < tasksPS.size(); j++) {
 
@@ -183,9 +181,7 @@ public class TaskService {
             }
 
             int taskCnt = tasksPS.size() - assignNullSize;
-            System.out.println(taskCnt);
             int doneCnt = taskJPQLRepository.findDoneCountByDate(date);
-            System.out.println(doneCnt);
 
             performanceOutDTOList.add(new TaskResponse.PerformanceOutDTO(date.toLocalDate(), taskCnt, doneCnt));
         }
@@ -287,6 +283,7 @@ public class TaskService {
         return responseList;
     }
 
+    // Overview Daily
     public TaskResponse.DailyTasksOutDTO getDailyTasks(LocalDate date, Pageable pageable) {
         Page<Task> tasksPS = taskRepository.findByDate(date, pageable);
 

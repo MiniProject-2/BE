@@ -105,14 +105,6 @@ public class TaskRepositoryTest {
     public void findLatestTasks_test(){
         List<Task> tasksPS = taskJPQLRepository.findLatestTasks();
 
-       for(Task t:tasksPS) {
-           System.out.println(t.getId());
-           System.out.println(t.getTitle());
-           System.out.println(t.getDescription());
-           System.out.println(t.getUser());
-           System.out.println(t.getProgress());
-           System.out.println();
-       }
         assertThat(tasksPS.size()).isEqualTo(7);
     }
 
@@ -123,15 +115,6 @@ public class TaskRepositoryTest {
         List<Task> tasksPS = taskJPQLRepository.findTasksByDate(
                 ZonedDateTime.now());
 
-        for(Task t:tasksPS) {
-            System.out.println(t.getId());
-            System.out.println(t.getTitle());
-            System.out.println(t.getDescription());
-            System.out.println(t.getUser());
-            System.out.println(t.getProgress());
-            System.out.println();
-        }
-        System.out.println(tasksPS.size());
         assertThat(tasksPS.size()).isEqualTo(8);
     }
 
@@ -164,14 +147,6 @@ public class TaskRepositoryTest {
         Long userId = 1L;
         List<Task> tasksPS = taskJPQLRepository.findTasksByUserId(userId);
 
-        for(Task t:tasksPS) {
-            System.out.println(t.getId());
-            System.out.println(t.getTitle());
-            System.out.println(t.getDescription());
-            System.out.println(t.getUser());
-            System.out.println(t.getProgress());
-            System.out.println();
-        }
         assertThat(tasksPS.size()).isEqualTo(8);
     }
 
@@ -182,14 +157,6 @@ public class TaskRepositoryTest {
         LocalDate date = LocalDate.of(2023, 5, 2);
         List<Task> tasksPS = taskJPQLRepository.findTaskByStartEndDate(date);
 
-        for(Task t:tasksPS) {
-            System.out.println(t.getId());
-            System.out.println(t.getTitle());
-            System.out.println(t.getDescription());
-            System.out.println(t.getStartAt());
-            System.out.println(t.getEndAt());
-            System.out.println();
-        }
         assertThat(tasksPS.size()).isEqualTo(8);
     }
 
@@ -200,15 +167,6 @@ public class TaskRepositoryTest {
         LocalDate date = LocalDate.of(2023, 5, 5);
         List<Task> tasksPS = taskJPQLRepository.findTasksByDaliyDate(date);
 
-        for(Task t:tasksPS) {
-            System.out.println(t.getId());
-            System.out.println(t.getTitle());
-            System.out.println(t.getDescription());
-            System.out.println(t.getStartAt());
-            System.out.println(t.getEndAt());
-            System.out.println(t.getUser().getEmail());
-            System.out.println();
-        }
         assertThat(tasksPS.size()).isEqualTo(8);
     }
 
@@ -220,15 +178,6 @@ public class TaskRepositoryTest {
         LocalDate endDate = LocalDate.of(2023, 5, 5);
         List<Task> tasksPS = taskJPQLRepository.findTasksByBetweenDate(startDate, endDate);
 
-        for(Task t:tasksPS) {
-            System.out.println(t.getId());
-            System.out.println(t.getTitle());
-            System.out.println(t.getDescription());
-            System.out.println(t.getStartAt());
-            System.out.println(t.getEndAt());
-            System.out.println(t.getUser().getEmail());
-            System.out.println();
-        }
         assertThat(tasksPS.size()).isEqualTo(8);
     }
 
@@ -240,15 +189,6 @@ public class TaskRepositoryTest {
         Pageable pageable = PageRequest.of(0, 10);
         Page<Task> tasksPS = taskRepository.findByDate(date, pageable);
 
-        for(Task t:tasksPS) {
-            System.out.println(t.getId());
-            System.out.println(t.getTitle());
-            System.out.println(t.getDescription());
-            System.out.println(t.getStartAt());
-            System.out.println(t.getEndAt());
-            System.out.println(t.getUser().getEmail());
-            System.out.println();
-        }
         assertThat(tasksPS.getTotalElements()).isEqualTo(8);
     }
 

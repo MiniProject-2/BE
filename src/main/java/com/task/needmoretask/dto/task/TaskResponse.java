@@ -105,10 +105,12 @@ public class TaskResponse {
         @Getter
         public static class AssignmentResponse{
             private Long userId;
+            private String fullName;
             private String profileImageUrl;
 
             public AssignmentResponse(Assignment assignment) {
                 this.userId = assignment.getUser().getId();
+                this.fullName = assignment.getUser().getFullname();
                 this.profileImageUrl = assignment.getUser().getProfile().getUrl();
             }
         }
