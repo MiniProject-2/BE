@@ -27,9 +27,9 @@ public class TaskRequest {
     @NotNull
     private Task.Priority priority;
 
-    @AssertTrue(message = "startAt must be before endAt")
+    @AssertTrue(message = "startAt must be before or equals endAt")
     private boolean isStartAtBeforeEndAt(){
-        return startAt.isBefore(endAt);
+        return startAt.isBefore(endAt) || startAt.isEqual(endAt);
     }
     @NotNull
     private Task.Progress progress;
