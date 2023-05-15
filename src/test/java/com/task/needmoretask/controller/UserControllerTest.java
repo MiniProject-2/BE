@@ -484,7 +484,6 @@ class UserControllerTest {
             Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
             ObjectMapper om = new ObjectMapper();
             JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
-            System.out.println(jsonNode);
             Assertions.assertEquals("성공", jsonNode.get("msg").asText());
         }
     }
@@ -563,7 +562,6 @@ class UserControllerTest {
             Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
             ObjectMapper om = new ObjectMapper();
             JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
-            System.out.println(jsonNode);
         }
     }
 

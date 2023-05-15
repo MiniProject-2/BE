@@ -426,7 +426,6 @@ class TaskControllerTest {
         JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
         Assertions.assertEquals("성공", jsonNode.get("msg").asText());
         JsonNode data = jsonNode.get("data");
-        System.out.println(data.toString());
         Assertions.assertEquals(userid,data.get(0).get("taskOwner").get("userId").asLong());
 //        Assertions.assertEquals(1 ,data.get(0).get("assignee").size());
     }
@@ -490,7 +489,6 @@ class TaskControllerTest {
         Assertions.assertEquals("성공", jsonNode.get("msg").asText());
         JsonNode data = jsonNode.get("data");
 
-        System.out.println(data.toString());
 //        Assertions.assertEquals(1, data.size());
 //        Assertions.assertEquals(0, data.get("totalCount"));
     }
@@ -525,7 +523,5 @@ class TaskControllerTest {
         JsonNode data = jsonNode.get("data");
 
 //        Assertions.assertEquals(1, data.size());
-
-        System.out.println(data.toString());
     }
 }

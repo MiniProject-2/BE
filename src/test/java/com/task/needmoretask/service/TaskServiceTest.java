@@ -23,7 +23,6 @@ import org.springframework.data.domain.Pageable;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -85,13 +84,6 @@ class TaskServiceTest {
                     if (!task.getId().equals(taskId)) throw new Exception404("Task를 찾을 수 없습니다");
                     return Optional.of(task);
                 });
-
-//        Assignment assignment = Assignment.builder()
-//                        .task(task)
-//                        .user(user)
-//                        .build();
-//        lenient().when(assignRepository.findAssigneeByTaskId(task.getId()))
-//                .thenReturn(Optional.of(List.of(assignment)));
 
         lenient().when(taskJPQLRepository.findLatestTasks())
                 .thenReturn(List.of(task));

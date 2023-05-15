@@ -107,12 +107,6 @@ public class AssignRepositoryTest {
         List<Assignment> assignmentsPS = assignRepository.findAssignTaskByUserId(userId)
                 .orElse(new ArrayList<>());
 
-        for(Assignment a:assignmentsPS) {
-            System.out.println(a.getId());
-            System.out.println(a.getUser());
-            System.out.println(a.getTask());
-            System.out.println();
-        }
         assertThat(assignmentsPS.size()).isEqualTo(8);
     }
 
