@@ -1,5 +1,6 @@
 package com.task.needmoretask.service;
 
+import com.task.needmoretask.core.exception.Exception403;
 import com.task.needmoretask.core.exception.Exception404;
 import com.task.needmoretask.dto.task.TaskRequest;
 import com.task.needmoretask.model.assign.AssignRepository;
@@ -19,6 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.mockito.Mockito.*;
 
@@ -38,7 +40,8 @@ class TaskServiceTest {
     @Mock
     private UserRepository userRepository;
 
-    User user;
+    private User user;
+    private Task task;
 
     @BeforeEach
     void setUp() {
@@ -59,8 +62,7 @@ class TaskServiceTest {
                     if (!user.getId().equals(userId)) throw new Exception404("유저를 찾을 수 없습니다");
                     return Optional.of(user);
                 });
-
-        Task task = Task.builder()
+        task = Task.builder()
                 .id(1L)
                 .startAt(LocalDate.of(2023,4,1))
                 .endAt(LocalDate.of(2023,5,1))
@@ -78,24 +80,17 @@ class TaskServiceTest {
                 });
     }
 
-    TaskRequest getTaskrequest(LocalDate start, LocalDate end, Long userId, String title, String desc, Task.Priority priority, Task.Progress progress) {
-        List<TaskRequest.AssigneeRequest> assignees = List.of(TaskRequest.AssigneeRequest.builder().userId(userId).build());
+    TaskRequest getTaskrequest(Long assignId) {
+        List<TaskRequest.AssigneeRequest> assignees = List.of(TaskRequest.AssigneeRequest.builder().userId(assignId).build());
         return TaskRequest.builder()
-                .startAt(start)
-                .endAt(end)
-                .title(title)
-                .desc(desc)
+                .startAt(task.getStartAt())
+                .endAt(task.getEndAt())
+                .title(task.getTitle())
+                .desc(task.getDescription())
                 .assignee(assignees)
-                .priority(priority)
-                .progress(progress)
+                .priority(task.getPriority())
+                .progress(task.getProgress())
                 .build();
-    }
-
-    List<Assignment> getAssign(TaskRequest request) {
-        return List.of(Assignment.builder()
-                .user(user)
-                .task(request.toEntity(user))
-                .build());
     }
 
     @Nested
@@ -105,9 +100,7 @@ class TaskServiceTest {
         @DisplayName("Assignee 유저를 찾을 수 없음")
         void fail() {
             //given
-            LocalDate start = LocalDate.of(2023, 5, 3);
-            LocalDate end = LocalDate.of(2023, 6, 3);
-            TaskRequest request = getTaskrequest(start, end, 2L, "title", "description", Task.Priority.LOW, Task.Progress.IN_PROGRESS);
+            TaskRequest request = getTaskrequest(2L);
             //when then
             Assertions.assertThrows(Exception404.class, () -> taskService.createTask(request, user));
         }
@@ -116,10 +109,13 @@ class TaskServiceTest {
         @DisplayName("성공")
         void success() {
             //given
-            LocalDate start = LocalDate.of(2023, 5, 3);
-            LocalDate end = LocalDate.of(2023, 6, 3);
-            TaskRequest request = getTaskrequest(start, end, 1L, "title", "description", Task.Priority.LOW, Task.Progress.IN_PROGRESS);
-            List<Assignment> assignments = getAssign(request);
+            TaskRequest request = getTaskrequest(user.getId());
+            List<Assignment> assignments = request.getAssignee().stream()
+                    .map(assign -> Assignment.builder()
+                                .task(request.toEntity(user))
+                                .user(user)
+                                .build())
+                    .collect(Collectors.toList());
             //when
             taskService.createTask(request, user);
             //then
@@ -129,21 +125,150 @@ class TaskServiceTest {
     }
 
     @Nested
+    @DisplayName("Task 수정")
+    class Update{
+        @Nested
+        @DisplayName("실패")
+        class Fail{
+            @Test
+            @DisplayName("1: Task 없음")
+            void test1(){
+                //given
+                long taskId = 2;
+                TaskRequest request = getTaskrequest(1L);
+                //when then
+                Assertions.assertThrows(Exception404.class, () -> taskService.updateTask(taskId,request,user));
+            }
+            @Test
+            @DisplayName("2: 권한 없음")
+            void test2(){
+                //given
+                long taskId = 1;
+                User user1 = User.builder().id(2L).role(User.Role.USER).build();
+                TaskRequest request = getTaskrequest(1L);
+                //when then
+                Assertions.assertThrows(Exception403.class, () -> taskService.updateTask(taskId,request,user1));
+            }
+            @Test
+            @DisplayName("3: Assignee 유저를 찾을 수 없음")
+            void test(){
+                //given
+                long taskId = 1;
+                TaskRequest request = getTaskrequest(2L);
+                //when then
+                Assertions.assertThrows(Exception404.class, () -> taskService.updateTask(taskId,request,user));
+            }
+        }
+        @Nested
+        @DisplayName("성공")
+        class Success{
+            @Test
+            @DisplayName("1: user 본인")
+            void test1(){
+                //given
+                long taskId = 1;
+                TaskRequest request = getTaskrequest(1L);
+                //when
+                taskService.updateTask(taskId,request,user);
+                //then
+                verify(taskRepository,times(1)).findById(taskId);
+                verify(assignRepository,times(1)).findAssigneeByTaskId(taskId);
+                Assertions.assertDoesNotThrow(() -> taskService.updateTask(taskId,request,user));
+            }
+            @Test
+            @DisplayName("2: admin")
+            void test2(){
+                //given
+                long taskId = 1;
+                User admin = User.builder().id(2L).role(User.Role.ADMIN).build();
+                TaskRequest request = getTaskrequest(1L);
+                //when
+                taskService.updateTask(taskId,request,admin);
+                //then
+                verify(taskRepository,times(1)).findById(taskId);
+                verify(assignRepository,times(1)).findAssigneeByTaskId(taskId);
+                Assertions.assertDoesNotThrow(() -> taskService.updateTask(taskId,request,admin));
+            }
+        }
+    }
+
+    @Nested
     @DisplayName("Task 삭제")
     class Delete {
+        @Nested
+        @DisplayName("실패")
+        class Fail{
+            @Test
+            @DisplayName("1: Task 없음")
+            void test1(){
+                //given
+                long taskId = 2;
+                //when then
+                Assertions.assertThrows(Exception404.class, () -> taskService.deleteTask(taskId,user));
+            }
+            @Test
+            @DisplayName("2: 권한 없음")
+            void test(){
+                //given
+                long taskId = 1;
+                User user1 = User.builder().id(2L).role(User.Role.USER).build();
+                //when then
+                Assertions.assertThrows(Exception403.class, () -> taskService.deleteTask(taskId,user1));
+            }
+        }
+        @Nested
+        @DisplayName("성공")
+        class Success{
+            @Test
+            @DisplayName("1: user 본인")
+            void success(){
+                //given
+                long taskId = 1;
+                //when
+                taskService.deleteTask(taskId,user);
+                //then
+                verify(taskRepository,times(1)).findById(taskId);
+                verify(assignRepository,times(1)).findAssigneeByTaskId(taskId);
+                Assertions.assertDoesNotThrow(() -> taskService.deleteTask(taskId,user));
+            }
+            @Test
+            @DisplayName("2: admin")
+            void test(){
+                //given
+                long taskId = 1;
+                User admin = User.builder().id(2L).role(User.Role.ADMIN).build();
+                //when
+                taskService.deleteTask(taskId,admin);
+                //then
+                verify(taskRepository,times(1)).findById(taskId);
+                verify(assignRepository,times(1)).findAssigneeByTaskId(taskId);
+                Assertions.assertDoesNotThrow(() -> taskService.deleteTask(taskId,admin));
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("Task 상세보기")
+    class Detail{
+        @Test
+        @DisplayName("실패: Task 없음")
+        void test(){
+            //given
+            long taskId = 2;
+            //when then
+            Assertions.assertThrows(Exception404.class, () -> taskService.getDetailTask(taskId));
+        }
         @Test
         @DisplayName("성공")
         void success(){
             //given
             long taskId = 1;
             //when
-            taskService.deleteTask(taskId,user);
+            taskService.getDetailTask(taskId);
             //then
             verify(taskRepository,times(1)).findById(taskId);
             verify(assignRepository,times(1)).findAssigneeByTaskId(taskId);
-            Assertions.assertDoesNotThrow(() -> taskService.deleteTask(taskId,user));
+            Assertions.assertDoesNotThrow(() -> taskService.getDetailTask(taskId));
         }
     }
-
-
 }
