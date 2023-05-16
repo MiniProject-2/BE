@@ -521,6 +521,7 @@ class TaskControllerTest {
         JsonNode jsonNode = om.readTree(om.writeValueAsString(response.getBody()));
         Assertions.assertEquals("성공", jsonNode.get("msg").asText());
         JsonNode data = jsonNode.get("data");
+        System.out.println(data.toString());
 
 //        Assertions.assertEquals(1, data.size());
     }
