@@ -154,12 +154,26 @@ public class TaskJPQLRepository {
         return query.getResultList();
     }
 
-    public Long[] countByProgress(){
-        String nativeQuery = "SELECT (SELECT COUNT(*) FROM task_tb t WHERE t.progress='TODO') AS TODO_CNT, "
-                + "(SELECT COUNT(*) FROM task_tb t WHERE t.progress='IN_PROGRESS') AS IN_PROGRESS_CNT, "
-                + "(SELECT COUNT(*) FROM task_tb t WHERE t.progress='DONE') AS DONE_CNT";
+    public Long[] countByProgress(LocalDate startDate, LocalDate endDate){
 
-        Query query = em.createNativeQuery(nativeQuery);
+        String nativeQuery = "SELECT " +
+                "SUM(CASE WHEN t.progress = 'TODO' THEN 1 ELSE 0 END) AS TODO_CNT, " +
+                "SUM(CASE WHEN t.progress = 'IN_PROGRESS' THEN 1 ELSE 0 END) AS IN_PROGRESS_CNT, " +
+                "SUM(CASE WHEN t.progress = 'DONE' THEN 1 ELSE 0 END) AS DONE_CNT " +
+                "FROM task_tb t " +
+                "WHERE t.is_deleted = false " +
+                "AND ((t.start_at >= :startDate " +
+                "AND t.start_at <= :endDate) " +
+                "OR (t.end_at >= :startDate " +
+                "AND t.end_at <= :endDate) " +
+                "OR (:startDate >= t.start_at " +
+                "AND :endDate <= t.end_at) " +
+                "OR (t.start_at >= :startDate " +
+                "AND t.end_at <= :endDate))";
+
+        Query query = em.createNativeQuery(nativeQuery)
+                .setParameter("startDate" , startDate)
+                .setParameter("endDate" , endDate);
 
         Object[] result = (Object[]) query.getSingleResult();
 
