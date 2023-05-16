@@ -88,7 +88,7 @@ class TaskServiceTest {
         lenient().when(taskJPQLRepository.findLatestTasks())
                 .thenReturn(List.of(task));
 
-        lenient().when(taskJPQLRepository.countByProgress())
+        lenient().when(taskJPQLRepository.countByProgress(LocalDate.of(2023,4,1), LocalDate.of(2023,4,1)))
                 .thenReturn(new Long[]{3L, 1L, 4L});
 
     }
@@ -462,7 +462,7 @@ class TaskServiceTest {
             //given
             long taskId = 1L;
             LocalDate startDate = LocalDate.of(2023, 4, 1);
-            LocalDate endDate = LocalDate.of(2023, 4, 4);
+            LocalDate endDate = LocalDate.of(2023, 4, 1);
             Pageable pageable = PageRequest.of(0,10);
 
             lenient().when(taskRepository.findTasksByBetweenDate(startDate, endDate, pageable))
