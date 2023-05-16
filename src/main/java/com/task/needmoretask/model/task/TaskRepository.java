@@ -19,7 +19,10 @@ public interface TaskRepository extends JpaRepository<Task,Long> {
             "where t.isDeleted = false " +
             "and (t.startAt <= :date " +
             "and t.endAt >= :date) " +
-            "order by t.title desc", countQuery = "select COUNT(t) from Task t where t.isDeleted = false")
+            "order by t.title desc", countQuery = "select COUNT(t) from Task t " +
+            "where t.isDeleted = false " +
+            "and (t.startAt <= :date " +
+            "and t.endAt >= :date) ")
     Page<Task> findByDate(@Param("date") LocalDate date, Pageable pageable);
 
     @Query(value = "select t " +
@@ -34,7 +37,16 @@ public interface TaskRepository extends JpaRepository<Task,Long> {
             "and :endDate <= t.endAt) " +
             "or (t.startAt >= :startDate " +
             "and t.endAt <= :endDate)" +
-            ")", countQuery = "select COUNT(t) from Task t where t.isDeleted = false")
+            ")", countQuery = "select COUNT(t) from Task t " +
+            "where t.isDeleted = false " +
+            "and ((t.startAt >= :startDate " +
+            "and t.startAt <= :endDate) " +
+            "or (t.endAt >= :startDate " +
+            "and t.endAt <= :endDate) " +
+            "or (:startDate >= t.startAt " +
+            "and :endDate <= t.endAt) " +
+            "or (t.startAt >= :startDate " +
+            "and t.endAt <= :endDate))")
     Page<Task> findTasksByBetweenDate(@Param("startDate") LocalDate startDate,
                                       @Param("endDate") LocalDate endDate,
                                       Pageable pageable);
