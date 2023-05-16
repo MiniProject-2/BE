@@ -317,7 +317,7 @@ class UserControllerTest {
     class GetUserInfo{
         @Test
         @DirtiesContext
-        @DisplayName("")
+        @DisplayName("성공")
         void test() throws JsonProcessingException {
             //given
             User user = userRepository.findById(userId1).orElse(null);

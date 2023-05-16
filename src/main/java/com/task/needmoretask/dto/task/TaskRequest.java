@@ -33,6 +33,11 @@ public class TaskRequest {
     }
     @NotNull
     private Task.Progress progress;
+
+    public boolean isAssigneeEmpty(){
+        return assignee.isEmpty();
+    }
+
     @Getter @Builder
     @NoArgsConstructor
     @AllArgsConstructor

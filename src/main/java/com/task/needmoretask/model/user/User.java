@@ -109,4 +109,11 @@ public class User {
         this.isDeleted = true;
     }
 
+    public boolean isRole(User.Role role){
+        return this.role.equals(role);
+    }
+
+    public boolean isUserEqual(Long userId){
+        return this.id.equals(userId);
+    }
 }

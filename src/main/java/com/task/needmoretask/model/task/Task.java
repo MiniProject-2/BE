@@ -72,4 +72,8 @@ public class Task extends Timestamped {
     public void deactivateTask(){
         this.isDeleted = true;
     }
+
+    public boolean isUserEqual(Long userId){
+        return this.user.getId().equals(userId);
+    }
 }

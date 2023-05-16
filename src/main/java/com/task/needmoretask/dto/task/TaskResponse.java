@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 public class TaskResponse {
 
     @Getter
-    public static class Test{
+    public static class Update{
         private Long id;
         private Long taskOwner;
         private String title;
@@ -27,7 +27,7 @@ public class TaskResponse {
         private Task.Priority priority;
         private List<AssignResponse> assignee;
 
-        public Test(Task task, List<AssignResponse> assignee) {
+        public Update(Task task, List<AssignResponse> assignee) {
             this.id = task.getId();
             this.taskOwner = task.getUser().getId();
             this.title = task.getTitle();

@@ -34,7 +34,7 @@ public class TaskController {
     // Task 수정
     @PutMapping("/task/{id}")
     public ResponseEntity<?> updateTask(@PathVariable Long id, @RequestBody @Valid TaskRequest taskRequest, Errors errors, @AuthenticationPrincipal MyUserDetails myUserDetails){
-        TaskResponse.Test task = taskService.updateTask(id, taskRequest, myUserDetails.getUser());
+        TaskResponse.Update task = taskService.updateTask(id, taskRequest, myUserDetails.getUser());
         return ResponseEntity.ok().body(new ResponseDTO<>(task));
     }
 

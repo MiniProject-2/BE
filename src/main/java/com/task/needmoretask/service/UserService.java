@@ -8,7 +8,6 @@ import com.task.needmoretask.core.exception.Exception404;
 import com.task.needmoretask.core.util.S3Uploader;
 import com.task.needmoretask.dto.user.UserRequest;
 import com.task.needmoretask.dto.user.UserResponse;
-import com.task.needmoretask.model.auth.AuthRepository;
 import com.task.needmoretask.model.log.Log;
 import com.task.needmoretask.model.log.LogRepository;
 import com.task.needmoretask.model.profile.Profile;
@@ -27,7 +26,6 @@ import javax.validation.Valid;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -38,7 +36,6 @@ public class UserService {
     private final UserRepository userRepository;
     private final ProfileRepository profileRepository;
     private final LogRepository logRepository;
-    private final AuthRepository authRepository;
     private final S3Uploader s3Uploader;
     private final BCryptPasswordEncoder passwordEncoder;
     private final MyJwtProvider myJwtProvider;
@@ -93,6 +90,7 @@ public class UserService {
         return new UserResponse.ProfileOut(profile);
     }
 
+    //유저 전체 조회
     public UserResponse.AllUsersOut getAllUsers(){
         List<User> users = userRepository.findAll();
         List<UserResponse.AllUsersOut.AllUserOut> userOut = users.stream()
@@ -133,12 +131,12 @@ public class UserService {
     public UserResponse.UserOut updateUserInfo(Long id, UserRequest.UserIn userIn, User user) {
         User findUser = notFoundUser(id,false);
         forbiddenUser(findUser, user);
-        if (!userIn.getPassword().isEmpty()){
-            if(!Pattern.matches("^[a-zA-Z0-9.-]{6,16}$",userIn.getPassword()) && !Pattern.matches("^[a-zA-Z0-9.-]{6,16}$",userIn.getPasswordCheck())) throw new Exception400("password","비밀번호 형식이 잘못 되었습니다");
+        if (!userIn.isPasswordEmpty()){
+            if(!userIn.isPasswordMatches()) throw new Exception400("password","비밀번호 형식이 잘못 되었습니다");
             passwordCheck(userIn.getPassword(), userIn.getPasswordCheck());
             findUser.pwdUpdate(passwordEncoder.encode(userIn.getPassword()));
         }
-        if (!userIn.getProfileId().equals(1L)) {
+        if (!userIn.isProfileDefault()) {
             Profile profile = profileRepository.findById(userIn.getProfileId()).orElseThrow(
                     () -> new Exception404("프로필이 없습니다")
             );
@@ -169,7 +167,7 @@ public class UserService {
     // 권한 수정
     @Transactional
     public void updateRole(User loginUser, UserRequest.updateRoleInDTO updateRoleInDTO) {
-        if (!loginUser.getRole().equals(User.Role.ADMIN))
+        if (!loginUser.isRole(User.Role.ADMIN))
             throw new Exception403("권한이 부족합니다");
 
         User userPS = notFoundUser(updateRoleInDTO.getUserId(),false);
@@ -196,7 +194,7 @@ public class UserService {
 
     // 유저 권한 체크
     private void forbiddenUser(User findUser, User loginUser) {
-        if (loginUser.getRole() == User.Role.USER && !findUser.getId().equals(loginUser.getId()))
+        if (loginUser.isRole(User.Role.USER) && !findUser.isUserEqual(loginUser.getId()))
             throw new Exception403("권한이 없습니다");
     }
 

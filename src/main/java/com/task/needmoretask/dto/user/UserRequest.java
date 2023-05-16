@@ -11,6 +11,8 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
+import static java.util.regex.Pattern.*;
+
 @Getter
 public class UserRequest {
 
@@ -66,6 +68,16 @@ public class UserRequest {
         private Integer joinCompanyYear;
         @NotNull
         private Long profileId;
+
+        public boolean isPasswordEmpty(){
+            return password.isEmpty() && passwordCheck.isEmpty();
+        }
+        public boolean isPasswordMatches(){
+            return matches("^[a-zA-Z0-9.-]{6,16}$",password) && matches("^[a-zA-Z0-9.-]{6,16}$",passwordCheck);
+        }
+        public boolean isProfileDefault(){
+            return profileId.equals(1L);
+        }
     }
 
     @Getter @Builder

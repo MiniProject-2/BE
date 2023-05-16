@@ -17,7 +17,7 @@ import javax.persistence.*;
 public class Log extends Timestamped {
     @Id @GeneratedValue
     private Long id;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     private User user;
     @Column(nullable = false)
     private String userAgent;

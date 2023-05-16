@@ -61,8 +61,9 @@ public class TaskService {
         }
     }
 
+    // Task 수정
     @Transactional
-    public TaskResponse.Test updateTask(Long id, TaskRequest request, User user) {
+    public TaskResponse.Update updateTask(Long id, TaskRequest request, User user) {
         List<Assignment> newAssigns = new ArrayList<>();
         Task task = notFoundTask(id);
         forbiddenTask(task, user);
@@ -81,7 +82,7 @@ public class TaskService {
         }
 
         // request로 Assignee를 등록했다면 새로 저장
-        if (!request.getAssignee().isEmpty()) {
+        if (!request.isAssigneeEmpty()) {
             newAssigns = request.getAssignee().stream()
                     .map(assigneeRequest -> {
                         User assignee = userRepository.findById(assigneeRequest.getUserId())
@@ -98,10 +99,10 @@ public class TaskService {
                 throw new Exception500("Task 수정 실패: " + e.getMessage());
             }
         }
-        List<TaskResponse.Test.AssignResponse> assignResponses = newAssigns.stream()
-                .map(TaskResponse.Test.AssignResponse::new)
+        List<TaskResponse.Update.AssignResponse> assignResponses = newAssigns.stream()
+                .map(TaskResponse.Update.AssignResponse::new)
                 .collect(Collectors.toList());
-        return new TaskResponse.Test(task, assignResponses);
+        return new TaskResponse.Update(task, assignResponses);
     }
 
     // Task 삭제
@@ -337,7 +338,7 @@ public class TaskService {
 
     // Task에 대한 유저 권한 체크(본인 Task가 아닌 경우(어드민이 아닌 유저) 수정, 삭제 불가)
     private void forbiddenTask(Task task, User loginUser) {
-        if (loginUser.getRole() == User.Role.USER && !task.getUser().getId().equals(loginUser.getId()))
+        if (loginUser.isRole(User.Role.USER) && !task.isUserEqual(loginUser.getId()))
             throw new Exception403("권한이 없습니다");
     }
 }
