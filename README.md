@@ -8,7 +8,7 @@
 <br/>
 
 ## ERD
-![ERD](https://github.com/MiniProject-2/need-more-task-be/assets/107831692/f25cf822-2f95-4500-9fea-0653686f5aca)
+![ERD](https://github.com/MiniProject-2/need-more-task-be/assets/107831692/a90e5c90-c97d-4c32-b45c-3ae619416869)
 
 <br/>
 
