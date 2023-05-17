@@ -57,7 +57,7 @@ public class MySecurityConfig{
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         // 1. CSRF 해제
-        http.csrf().disable(); // postman 접근해야 함!! - CSR 할때!!
+//        http.csrf().disable(); // postman 접근해야 함!! - CSR 할때!!
 
         // 2. iframe 거부
         http.headers().frameOptions().disable();
@@ -109,8 +109,9 @@ public class MySecurityConfig{
         configuration.addAllowedMethod(HttpMethod.POST);
         configuration.addAllowedMethod(HttpMethod.PUT);
         configuration.addAllowedMethod(HttpMethod.DELETE);
-        configuration.addAllowedOriginPattern("*");
-//        configuration.addAllowedOriginPattern("https://need-more-task.vercel.app/");
+//        configuration.addAllowedOriginPattern("*");
+        configuration.addAllowedOriginPattern("https://need-more-task.vercel.app/**");
+        configuration.addAllowedOriginPattern("http://localhost:3000/**");
         configuration.setAllowCredentials(true); // 클라이언트에서 쿠키 요청 허용
         configuration.addExposedHeader("Authorization"); // 옛날에는 디폴트 였다. 지금은 아닙니다.
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
